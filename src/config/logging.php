@@ -55,12 +55,14 @@ return [
             'driver' => 'stack',
             'channels' => ['single'],
             'ignore_exceptions' => false,
+            'permission' => 0644,
         ],
 
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
+            'permission' => 0644,
         ],
 
         'daily' => [
@@ -68,6 +70,7 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => 14,
+            'permission' => 0644,
         ],
 
         'slack' => [
@@ -116,6 +119,11 @@ return [
 
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
+        ],
+
+        'query_alert' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/queryAlert.log'),
         ],
 
         'sql' => [
