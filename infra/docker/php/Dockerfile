@@ -1,6 +1,6 @@
 FROM php:8.1-fpm-bullseye AS base
 
-WORKDIR /data
+WORKDIR /app
 
 # timezone environment
 ENV TZ=UTC \
@@ -41,7 +41,7 @@ COPY ./infra/docker/php/php.development.ini /usr/local/etc/php/php.ini
 FROM base AS deploy
 
 COPY ./infra/docker/php/php.deploy.ini /usr/local/etc/php/php.ini
-COPY ./src /data
+COPY ./src /app
 
 RUN composer install -q -n --no-ansi --no-dev --no-scripts --no-progress --prefer-dist \
   && chmod -R 777 storage bootstrap/cache \

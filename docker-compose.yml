@@ -10,12 +10,13 @@ services:
     volumes:
       - type: bind
         source: ./src
-        target: /data
+        target: /app
       - type: volume
         source: psysh-store
         target: /root/.config/psysh
         volume:
           nocopy: true
+    restart: always
 
   web:
     build:
@@ -29,5 +30,6 @@ services:
     volumes:
       - type: bind
         source: ./src
-        target: /data
+        target: /app
+    restart: always
 
