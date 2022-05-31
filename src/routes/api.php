@@ -14,6 +14,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::get('/', function () {
+    return response()->json(["status"=>200]);
+});
+
+// ログインユーザ用エンドポイント
+Route::group(['middleware' => ['auth0']], function () {
+    Route::get('/example', function (Request $request) {
+        return response()->json([
+            "autho_user_id" => $request['auth0_user_id'],
+            "message" => "ok"
+        ]);
+    });
 });
