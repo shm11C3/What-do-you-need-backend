@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Auth0\SDK\Auth0;
 use Auth0\SDK\Token;
@@ -9,6 +11,20 @@ use Closure;
 
 class CheckIdToken
 {
+    /**
+     * ユーザデータをキャッシュする時間
+     *
+     * @var integer
+     */
+    private int $cache_minutes = 30;
+
+    /**
+     * IDトークンから取得した`sub`(`auth_id`)
+     *
+     * @var string|null
+     */
+    private ?string $auth_id = null;
+
     /**
      * Handle an incoming request.
      *
@@ -35,29 +51,52 @@ class CheckIdToken
 
         // リクエストヘッダにBearerトークンが存在するか確認
         if (empty($request->bearerToken())) {
-            return response()->json(["message" => "Token dose not exist"], 401);
+            return response()->json(["message" => "Token dose not exist", "code" => 1000], 401);
         }
 
         $id_token = $request->bearerToken();
 
         // IDトークンの検証・デコード
         try {
-            $auth0->decode($id_token, null, null, null, null, null, null, \Auth0\SDK\Token::TYPE_ID_TOKEN);
+            $auth0->decode($id_token, null, null, null, null, null, null, Token::TYPE_ID_TOKEN);
         } catch (\Exception $e) {
-            return config('app.debug') ?
-            response()->json(["message" => $e->getMessage()], 401) :
-            response()->json(["message" => "401: Unauthorized"], 401);
+            return response()->json([
+                "message" => config('app.debug') ? $e->getMessage() : "401: Unauthorized",
+                "code" => 1001
+            ], 401);
         }
 
-        $token = new Token($auth0->configuration(), $id_token, \Auth0\SDK\Token::TYPE_ID_TOKEN);
-        $payload = json_decode($token->toJson()); //IDトークンに格納されたClaimを取得
+        //IDトークンに格納されたClaimを取得
+        $token = new Token($auth0->configuration(), $id_token, Token::TYPE_ID_TOKEN);
+        $payload = json_decode($token->toJson());
+
+        $this->auth_id = $payload->sub;
+
+        $user = json_decode($this->getAuthUser());
+
+        // ユーザプロフィールが存在しない場合はリクエストを受け付けずにリターンする（フロントでユーザプロフィール作成フォームにリダイレクトさせる）
+        if(!$user){
+            return response()->json(["message" => "User profile is not registered", "code" => 2000]);
+        }
 
         // user_idを$requestに追加する。
         $request->merge([
-            'auth0_user_id' => $payload->sub
+            'user' => $user
         ]);
 
         return $next($request);
+    }
 
+    /**
+     * キャッシュから`auth_id`に一致するユーザを返す。存在しな場合はDBを参照する
+     *
+     * @return ?string
+     */
+    private function getAuthUser()
+    {
+        return Cache::remember($this->auth_id, $this->cache_minutes, function () {
+            $u = DB::table('users')->where('auth_id', $this->auth_id)->where('delete_flg', 0)->get(['auth_id', 'name', 'username', 'country_id', 'created_at']);
+            return json_encode($u);
+        });
     }
 }

@@ -29,7 +29,7 @@ class User extends Authenticatable
         'auth_id',
         'name',
         'username',
-        'country_code',
+        'country_id',
     ];
 
     /**
