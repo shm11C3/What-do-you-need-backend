@@ -21,7 +21,7 @@ class UserFactory extends Factory
             'auth_id' => 'auth:'.$this->faker->uuid(),
             'name' => $this->faker->name(),
             'username' => substr($this->faker->unique()->userName(), 0, 15),
-            'country_code' => 555,
+            'country_id' => 1220,
             'delete_flg' => rand(0,1)
         ];
     }
