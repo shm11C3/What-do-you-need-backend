@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use App\Consts\ErrorMessage;
 use Auth0\SDK\Auth0;
 use Auth0\SDK\Token;
 use Closure;
@@ -51,7 +52,7 @@ class CheckIdToken
 
         // リクエストヘッダにBearerトークンが存在するか確認
         if (empty($request->bearerToken())) {
-            return response()->json(["message" => "Token dose not exist", "code" => 1000], 401);
+            return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['token_does_not_exist'], 401);
         }
 
         $id_token = $request->bearerToken();
@@ -74,13 +75,9 @@ class CheckIdToken
 
         $user = json_decode($this->getAuthUser());
 
-        // ユーザプロフィールが存在しない場合はリクエストを受け付けずにリターンする（フロントでユーザプロフィール作成フォームにリダイレクトさせる）
-        if(!$user){
-            return response()->json(["message" => "User profile is not registered", "code" => 2000]);
-        }
-
         // user_idを$requestに追加する。
         $request->merge([
+            'subject' => $this->auth_id,
             'user' => $user
         ]);
 
