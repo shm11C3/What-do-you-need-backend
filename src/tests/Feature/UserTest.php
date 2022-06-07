@@ -106,6 +106,37 @@ class UserTest extends TestCase
         $response->assertStatus(422)->assertJson(ErrorMessage::ERROR_MESSAGE_LIST['user_already_exist']);
     }
 
+    public function test_updateUserProfile() :void
+    {
+        $additional_text = '_updated';
+
+        // 正常系
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->putJson('user/update', [
+            'name' => self::TESTING_NAME.$additional_text,
+            'username' => self::TESTING_USERNAME.$additional_text,
+            'country_id' => self::TESTING_COUNTRY_ID+10,
+        ]);
+
+        $response->assertStatus(200)->assertJson([
+            "status" => true
+        ]);
+
+        // 各値に変更がなくてもリクエストは処理される
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->putJson('user/update', [
+            'name' => self::TESTING_NAME,
+            'username' => self::TESTING_USERNAME,
+            'country_id' => self::TESTING_COUNTRY_ID,
+        ]);
+
+        $response->assertStatus(200)->assertJson([
+            "status" => true
+        ]);
+    }
+
     /**
      * Auth0で作成したテスト用ユーザのID Tokenを取得
      *
@@ -142,6 +173,7 @@ class UserTest extends TestCase
             'username' => self::TESTING_USERNAME,
             'country_id' => self::TESTING_COUNTRY_ID,
         ]);
+        Cache::forget($this->testing_auth_id);
     }
 
     /**

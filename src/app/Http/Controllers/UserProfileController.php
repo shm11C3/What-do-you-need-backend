@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
 use App\Consts\ErrorMessage;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Models\Country;
 use Illuminate\Http\Request;
@@ -12,6 +13,11 @@ use Illuminate\Support\Facades\Cache;
 
 class UserProfileController extends Controller
 {
+    /**
+     * Undocumented function
+     *
+     * @param User $user
+     */
     public function __construct(User $user)
     {
         $this->user = $user;
@@ -67,9 +73,36 @@ class UserProfileController extends Controller
         return response()->json($user_data);
     }
 
-    public function updateUserProfile(Request $request)
+    /**
+     * 受け取ったユーザーデータでDBを更新する
+     *
+     * @param UpdateUserRequest $request
+     * @return void
+     */
+    public function updateUserProfile(UpdateUserRequest $request)
     {
+        // ユーザーが登録されているか
+        if(!$request->user){
+            return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['user_does_not_exist']);
+        }
 
+        // 他のユーザーが同じ `username` を登録していないか
+        if(!DB::table('users')->where('username', $request['username'])->where('auth_id', '!=', $request->subject)){
+            return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['username_is_already_used'], 422);
+        }
+
+        // DBテーブルを更新
+        try{
+            DB::table('users')->where('auth_id', $request->subject)->update([
+                'name'       => $request['name'],
+                'username'   => $request['username'],
+                'country_id' => $request['country_id']
+            ]);
+        }catch(\Exception $e){
+            return response()->json(["status" => false, "message" => $e->getMessage(), 500]);
+        }
+
+        return response()->json(["status" => true]);
     }
 
     public function deleteUserProfile(Request $request)
