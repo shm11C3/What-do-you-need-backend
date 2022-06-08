@@ -44,7 +44,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * Test profile
+     * Test `/user/profile`
      *
      * @return void
      */
@@ -68,7 +68,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * Test `user/create`
+     * Test `/user/create`
      *
      * @return void
      */
@@ -109,10 +109,50 @@ class UserTest extends TestCase
         ]);
 
         $response->assertStatus(422)->assertJson(ErrorMessage::ERROR_MESSAGE_LIST['user_already_exist']);
+
+
+        $this->deleteTestUser();
+
+        // usernameのバリデーションを確認
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('user/create', [
+            'name' => self::TESTING_NAME,
+            'username' => '1234567890123456',
+            'country_id' => self::TESTING_COUNTRY_ID,
+        ]);
+
+        $response->assertStatus(200)->assertJson([
+            "status" => true
+        ]);
+
+        $this->deleteTestUser();
+
+        // 17文字以上は登録できない
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('user/create', [
+            'name' => self::TESTING_NAME,
+            'username' => '12345678901234567',
+            'country_id' => self::TESTING_COUNTRY_ID,
+        ]);
+
+        $response->assertStatus(422);
+
+        // 記号は`_` `-`以外は使用できない
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('user/create', [
+            'name' => self::TESTING_NAME,
+            'username' => self::TESTING_USERNAME.'@',
+            'country_id' => self::TESTING_COUNTRY_ID,
+        ]);
+
+        $response->assertStatus(422);
     }
 
     /**
-     * Test `user/update`
+     * Test `/user/update`
      *
      * @return void
      */
@@ -148,7 +188,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * Test `user/delete`
+     * Test `/user/delete`
      *
      * @return void
      */
