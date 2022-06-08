@@ -50,10 +50,10 @@ class UserTest extends TestCase
      */
     public function test_getUserProfile(): void
     {
-        $response = $this->getJson('/profile');
+        $response = $this->getJson('/user/profile');
         $response->assertStatus(401)->assertJson(ErrorMessage::ERROR_MESSAGE_LIST['token_does_not_exist']);
 
-        $response = $this->getJson('/profile', [
+        $response = $this->getJson('/user/profile', [
             'Authorization' => 'Bearer '.$this->id_token
         ]);
 
@@ -90,7 +90,7 @@ class UserTest extends TestCase
         ]);
 
         // ユーザーが正常に作成されているか確認
-        $this->getJson('/profile', [
+        $this->getJson('/user/profile', [
             'Authorization' => 'Bearer '.$this->id_token
         ])->assertStatus(200)->assertJson([
             'auth_id' => $this->testing_auth_id,
@@ -163,7 +163,7 @@ class UserTest extends TestCase
             "status" => true
         ]);
 
-        $this->getJson('/profile', [
+        $this->getJson('/user/profile', [
             'Authorization' => 'Bearer '.$this->id_token
         ])->assertStatus(200)->assertJson([
             'status' => false,

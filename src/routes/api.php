@@ -23,7 +23,7 @@ Route::get('/', function () {
 Route::group(['middleware' => ['auth0']], function () {
 
     // UserProfileController
-    Route::get('/profile', [UserProfileController::class, 'getUserProfile'])->name('getUserProfile');
+    Route::get('/user/profile', [UserProfileController::class, 'getUserProfile'])->name('getUserProfile');
 
     Route::post('/user/create', [UserProfileController::class, 'storeUserProfile'])->name('storeUserProfile');
 
