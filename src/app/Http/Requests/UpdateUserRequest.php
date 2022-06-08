@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Rules\CountryIdRule;
 
-class UpdateUserRequest extends FormRequest
+class UpdateUserRequest extends ApiRequest
 {
     /**
      * Get the validation rules that apply to the request.
