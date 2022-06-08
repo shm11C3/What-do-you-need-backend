@@ -14,8 +14,6 @@ use Illuminate\Support\Facades\Cache;
 class UserProfileController extends Controller
 {
     /**
-     * Undocumented function
-     *
      * @param User $user
      */
     public function __construct(User $user)
@@ -36,13 +34,24 @@ class UserProfileController extends Controller
             return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['user_already_exist'], 422);
         }
 
+        // 論理削除されたユーザの場合、レコードを更新する
         try {
-            DB::table('users')->insert([
-                'auth_id'    => $request->subject,
-                'name'       => $request['name'],
-                'username'   => $request['username'],
-                'country_id' => $request['country_id']
-            ]);
+            if($this->user->isDeletedUser($request->subject)){
+                DB::table('users')->where('auth_id', $request->subject)->update([
+                    'name'       => $request['name'],
+                    'username'   => $request['username'],
+                    'country_id' => $request['country_id'],
+                    'delete_flg' => 0
+                ]);
+            }else{
+                DB::table('users')->insert([
+                    'auth_id'    => $request->subject,
+                    'name'       => $request['name'],
+                    'username'   => $request['username'],
+                    'country_id' => $request['country_id']
+                ]);
+            }
+
         }catch (\Exception $e) {
             return response()->json(["status" => false, "message" => $e->getMessage(), 500]);
         }
@@ -105,8 +114,32 @@ class UserProfileController extends Controller
         return response()->json(["status" => true]);
     }
 
+    /**
+     * ユーザーを削除
+     *
+     * @param Request $request
+     * @return void
+     */
     public function deleteUserProfile(Request $request)
     {
+        // ユーザーが登録されているか
+        if(!$request->user){
+            return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['user_does_not_exist']);
+        }
 
+        // usersからユーザーを論理削除
+        try{
+            DB::table('users')->where('auth_id', $request->subject)->update([
+                'username' => null,
+                'delete_flg' => 1
+            ]);
+
+        }catch(\Exception $e){
+            return response()->json(["status" => false, "message" => $e->getMessage(), 500]);
+        }
+
+        Cache::forget($request->subject);
+
+        return response()->json(["status" => true]);
     }
 }

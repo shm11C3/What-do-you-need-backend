@@ -28,4 +28,6 @@ Route::group(['middleware' => ['auth0']], function () {
     Route::post('/user/create', [UserProfileController::class, 'storeUserProfile'])->name('storeUserProfile');
 
     Route::put('/user/update', [UserProfileController::class, 'updateUserProfile'])->name('updateUserProfile');
+
+    Route::delete('/user/delete', [UserProfileController::class, 'deleteUserProfile'])->name('deleteUserProfile');
 });

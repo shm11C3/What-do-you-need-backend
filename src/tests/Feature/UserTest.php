@@ -39,13 +39,13 @@ class UserTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->fetchIdToken();
-
         $this->createTestUser();
     }
 
     /**
+     * Test profile
+     *
      * @return void
      */
     public function test_getUserProfile(): void
@@ -67,6 +67,11 @@ class UserTest extends TestCase
         ]);
     }
 
+    /**
+     * Test `user/create`
+     *
+     * @return void
+     */
     public function test_createUserProfile(): void
     {
         $this->deleteTestUser();
@@ -106,6 +111,11 @@ class UserTest extends TestCase
         $response->assertStatus(422)->assertJson(ErrorMessage::ERROR_MESSAGE_LIST['user_already_exist']);
     }
 
+    /**
+     * Test `user/update`
+     *
+     * @return void
+     */
     public function test_updateUserProfile() :void
     {
         $additional_text = '_updated';
@@ -135,6 +145,45 @@ class UserTest extends TestCase
         $response->assertStatus(200)->assertJson([
             "status" => true
         ]);
+    }
+
+    /**
+     * Test `user/delete`
+     *
+     * @return void
+     */
+    public function test_deleteUserProfile()
+    {
+        // 正常系
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('user/delete');
+
+        $response->assertStatus(200)->assertJson([
+            "status" => true
+        ]);
+
+        $this->getJson('/profile', [
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->assertStatus(200)->assertJson([
+            'status' => false,
+            'message' => 'User profile is not registered',
+            'code' => 2000,
+        ]);
+
+        // 削除後に再登録できるか
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('user/create', [
+            'name' => self::TESTING_NAME,
+            'username' => self::TESTING_USERNAME,
+            'country_id' => self::TESTING_COUNTRY_ID,
+        ]);
+
+        $response->assertStatus(200)->assertJson([
+            "status" => true
+        ]);
+
     }
 
     /**

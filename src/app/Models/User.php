@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -52,11 +53,14 @@ class User extends Authenticatable
 
     ];
 
-    public function newQuery($excludeDeleted = true)
+    /**
+     * ユーザが論理削除されているかをDBから取得して確認
+     *
+     * @param object $u
+     * @return boolean
+     */
+    public function isDeletedUser(string $auth_id): bool
     {
-        // 親のメソッドを呼び出す
-        $query = parent::newQuery($excludeDeleted);
-
-        return $query->where('delete_flg', 0);
+        return DB::table('users')->where('auth_id', $auth_id)->where('delete_flg', 1)->exists();
     }
 }
