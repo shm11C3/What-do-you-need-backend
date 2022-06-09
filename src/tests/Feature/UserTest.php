@@ -51,7 +51,7 @@ class UserTest extends TestCase
     public function test_getUserProfile(): void
     {
         $response = $this->getJson('/user/profile');
-        $response->assertStatus(401)->assertJson(ErrorMessage::ERROR_MESSAGE_LIST['token_does_not_exist']);
+        $response->assertStatus(401)->assertJson(ErrorMessage::MESSAGES['token_does_not_exist']);
 
         $response = $this->getJson('/user/profile', [
             'Authorization' => 'Bearer '.$this->id_token
@@ -108,7 +108,7 @@ class UserTest extends TestCase
             'country_id' => self::TESTING_COUNTRY_ID,
         ]);
 
-        $response->assertStatus(422)->assertJson(ErrorMessage::ERROR_MESSAGE_LIST['user_already_exist']);
+        $response->assertStatus(422)->assertJson(ErrorMessage::MESSAGES['user_already_exist']);
 
 
         $this->deleteTestUser();
@@ -169,11 +169,13 @@ class UserTest extends TestCase
             'country_id' => self::TESTING_COUNTRY_ID+10,
         ]);
 
+//        dd($response);
+
         $response->assertStatus(200)->assertJson([
             "status" => true
         ]);
 
-        // 各値に変更がなくてもリクエストは処理される
+        // `username`に変更がなくてもリクエストは処理される
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
         ])->putJson('user/update', [
@@ -183,6 +185,23 @@ class UserTest extends TestCase
         ]);
 
         $response->assertStatus(200)->assertJson([
+            "status" => true
+        ]);
+
+        // 各値が足りない状態でリクエストしても処理される
+        $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->putJson('user/update', [
+            'name' => self::TESTING_NAME,
+            'country_id' => self::TESTING_COUNTRY_ID,
+        ])->assertStatus(200)->assertJson([
+            "status" => true
+        ]);
+
+        // すべての値が空でもリクエストは処理される
+        $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->putJson('user/update')->assertStatus(200)->assertJson([
             "status" => true
         ]);
     }
