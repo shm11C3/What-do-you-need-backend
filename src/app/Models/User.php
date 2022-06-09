@@ -63,4 +63,27 @@ class User extends Authenticatable
     {
         return DB::table('users')->where('auth_id', $auth_id)->where('delete_flg', 1)->exists();
     }
+
+    /**
+     * $requestsから受け取った配列の存在する各値のみを配列に追加して返す
+     *
+     * @param array $request
+     * @return array
+     */
+    public function mergeUpdateUserData(array $requests): array
+    {
+        $user_data = [];
+
+        if($requests['name']){
+            $user_data = $user_data + ['name' => $requests['name']];
+        }
+        if($requests['username']){
+            $user_data = $user_data + ['username' => $requests['username']];
+        }
+        if($requests['country_id']){
+            $user_data = $user_data + ['country_id' => $requests['country_id']];
+        }
+
+        return $user_data;
+    }
 }

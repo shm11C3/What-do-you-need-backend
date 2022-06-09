@@ -104,13 +104,19 @@ class UserProfileController extends Controller
             return response()->json(ErrorMessage::MESSAGES['username_is_already_used'], 422);
         }
 
+        $user_data = $this->user->mergeUpdateUserData([
+            'name'       => $request['name'],
+            'username'   => $request['username'],
+            'country_id' => $request['country_id']
+        ]);
+
+        if(!$user_data){
+            return response()->json(["status" => true]);
+        }
+
         // DBテーブルを更新
         try{
-            DB::table('users')->where('auth_id', $request->subject)->update([
-                'name'       => $request['name'],
-                'username'   => $request['username'],
-                'country_id' => $request['country_id']
-            ]);
+            DB::table('users')->where('auth_id', $request->subject)->update($user_data);
         }catch(\Exception $e){
             return response()->json([
                 "status" => false,
