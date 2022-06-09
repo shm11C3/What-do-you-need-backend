@@ -31,7 +31,7 @@ class UserProfileController extends Controller
     {
         // auth_idがすでに登録されている場合リターン
         if($request->user){
-            return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['user_already_exist'], 422);
+            return response()->json(ErrorMessage::MESSAGES['user_already_exist'], 422);
         }
 
         // 論理削除されたユーザの場合、レコードを更新する
@@ -53,7 +53,11 @@ class UserProfileController extends Controller
             }
 
         }catch (\Exception $e) {
-            return response()->json(["status" => false, "message" => $e->getMessage(), 500]);
+            return response()->json([
+                "status" => false,
+                "message" => config('app.debug') ? $e->getMessage() : ErrorMessage::HTTP[500],
+                500
+            ]);
         }
 
         Cache::forget($request->subject);
@@ -70,7 +74,7 @@ class UserProfileController extends Controller
     public function getUserProfile(Request $request)
     {
         if(!$request->user){
-            return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['user_does_not_exist']);
+            return response()->json(ErrorMessage::MESSAGES['user_does_not_exist']);
         }
 
         $user_data = $request->user[0];
@@ -92,12 +96,12 @@ class UserProfileController extends Controller
     {
         // ユーザーが登録されているか
         if(!$request->user){
-            return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['user_does_not_exist']);
+            return response()->json(ErrorMessage::MESSAGES['user_does_not_exist']);
         }
 
         // 他のユーザーが同じ `username` を登録していないか
         if(!DB::table('users')->where('username', $request['username'])->where('auth_id', '!=', $request->subject)){
-            return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['username_is_already_used'], 422);
+            return response()->json(ErrorMessage::MESSAGES['username_is_already_used'], 422);
         }
 
         // DBテーブルを更新
@@ -108,7 +112,11 @@ class UserProfileController extends Controller
                 'country_id' => $request['country_id']
             ]);
         }catch(\Exception $e){
-            return response()->json(["status" => false, "message" => $e->getMessage(), 500]);
+            return response()->json([
+                "status" => false,
+                "message" => config('app.debug') ? $e->getMessage() : ErrorMessage::HTTP[500],
+                500
+            ]);
         }
 
         return response()->json(["status" => true]);
@@ -124,7 +132,7 @@ class UserProfileController extends Controller
     {
         // ユーザーが登録されているか
         if(!$request->user){
-            return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['user_does_not_exist']);
+            return response()->json(ErrorMessage::MESSAGES['user_does_not_exist']);
         }
 
         // usersからユーザーを論理削除
@@ -135,7 +143,11 @@ class UserProfileController extends Controller
             ]);
 
         }catch(\Exception $e){
-            return response()->json(["status" => false, "message" => $e->getMessage(), 500]);
+            return response()->json([
+                "status" => false,
+                "message" => config('app.debug') ? $e->getMessage() : ErrorMessage::HTTP[500],
+                500
+            ]);
         }
 
         Cache::forget($request->subject);

@@ -51,7 +51,7 @@ class UserTest extends TestCase
     public function test_getUserProfile(): void
     {
         $response = $this->getJson('/user/profile');
-        $response->assertStatus(401)->assertJson(ErrorMessage::ERROR_MESSAGE_LIST['token_does_not_exist']);
+        $response->assertStatus(401)->assertJson(ErrorMessage::MESSAGES['token_does_not_exist']);
 
         $response = $this->getJson('/user/profile', [
             'Authorization' => 'Bearer '.$this->id_token
@@ -108,7 +108,7 @@ class UserTest extends TestCase
             'country_id' => self::TESTING_COUNTRY_ID,
         ]);
 
-        $response->assertStatus(422)->assertJson(ErrorMessage::ERROR_MESSAGE_LIST['user_already_exist']);
+        $response->assertStatus(422)->assertJson(ErrorMessage::MESSAGES['user_already_exist']);
 
 
         $this->deleteTestUser();

@@ -52,7 +52,7 @@ class CheckIdToken
 
         // リクエストヘッダにBearerトークンが存在するか確認
         if (empty($request->bearerToken())) {
-            return response()->json(ErrorMessage::ERROR_MESSAGE_LIST['token_does_not_exist'], 401);
+            return response()->json(ErrorMessage::MESSAGES['token_does_not_exist'], 401);
         }
 
         $id_token = $request->bearerToken();
@@ -62,7 +62,7 @@ class CheckIdToken
             $auth0->decode($id_token, null, null, null, null, null, null, Token::TYPE_ID_TOKEN);
         } catch (\Exception $e) {
             return response()->json([
-                "message" => config('app.debug') ? $e->getMessage() : "401: Unauthorized",
+                "message" => config('app.debug') ? $e->getMessage() : ErrorMessage::HTTP[401],
                 "code" => 1001
             ], 401);
         }
