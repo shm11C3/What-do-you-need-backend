@@ -6,9 +6,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use App\Consts\ErrorMessage;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Auth0\SDK\Auth0;
 use Auth0\SDK\Token;
 use Closure;
+use Illuminate\Support\Facades\Log;
 
 class CheckIdToken
 {
@@ -35,6 +37,8 @@ class CheckIdToken
      */
     public function handle($request, Closure $next)
     {
+        $request_status = $request->getClientIp().' '.$request->method().': '.$request->fullUrl();
+
         $configure = [
             'domain'       => config('auth0.domain'),
             'clientId'     => config('auth0.clientId'),
@@ -52,6 +56,7 @@ class CheckIdToken
 
         // リクエストヘッダにBearerトークンが存在するか確認
         if (empty($request->bearerToken())) {
+            Log::error('[Token Error] '.$request_status.' Token does not exist. ');
             return response()->json(ErrorMessage::MESSAGES['token_does_not_exist'], 401);
         }
 
@@ -61,8 +66,10 @@ class CheckIdToken
         try {
             $auth0->decode($id_token, null, null, null, null, null, null, Token::TYPE_ID_TOKEN);
         } catch (\Exception $e) {
+            Log::error('[Token Error] '.$request_status.' '.$e->getMessage());
+
             return response()->json([
-                "message" => config('app.debug') ? $e->getMessage() : ErrorMessage::HTTP[401],
+                "message" => config('app.debug') ? $e->getMessage() : '401 : '.HttpResponse::$statusTexts[401],
                 "code" => 1001
             ], 401);
         }

@@ -2,6 +2,8 @@
 
 namespace App\Exceptions;
 
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -45,6 +47,13 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        $this->renderable(function (HttpException $e) {
+            $statusCode = $e->getStatusCode();
+
+            $response = ["message" => $statusCode.': '.HttpResponse::$statusTexts[$statusCode]];
+                return response()->json($response, $statusCode);
         });
     }
 }
