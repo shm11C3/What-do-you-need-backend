@@ -169,8 +169,6 @@ class UserTest extends TestCase
             'country_id' => self::TESTING_COUNTRY_ID+10,
         ]);
 
-//        dd($response);
-
         $response->assertStatus(200)->assertJson([
             "status" => true
         ]);

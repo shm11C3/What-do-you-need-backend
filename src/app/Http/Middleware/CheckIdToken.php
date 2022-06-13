@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use App\Consts\ErrorMessage;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Auth0\SDK\Auth0;
 use Auth0\SDK\Token;
 use Closure;
@@ -62,7 +63,7 @@ class CheckIdToken
             $auth0->decode($id_token, null, null, null, null, null, null, Token::TYPE_ID_TOKEN);
         } catch (\Exception $e) {
             return response()->json([
-                "message" => config('app.debug') ? $e->getMessage() : ErrorMessage::HTTP[401],
+                "message" => config('app.debug') ? $e->getMessage() : '401 : '.HttpResponse::$statusTexts[401],
                 "code" => 1001
             ], 401);
         }

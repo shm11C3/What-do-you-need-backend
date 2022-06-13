@@ -10,6 +10,7 @@ use App\Models\Country;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class UserProfileController extends Controller
 {
@@ -55,7 +56,7 @@ class UserProfileController extends Controller
         }catch (\Exception $e) {
             return response()->json([
                 "status" => false,
-                "message" => config('app.debug') ? $e->getMessage() : ErrorMessage::HTTP[500],
+                "message" => config('app.debug') ? $e->getMessage() : '500 : '.HttpResponse::$statusTexts[500],
                 500
             ]);
         }
@@ -120,7 +121,7 @@ class UserProfileController extends Controller
         }catch(\Exception $e){
             return response()->json([
                 "status" => false,
-                "message" => config('app.debug') ? $e->getMessage() : ErrorMessage::HTTP[500],
+                "message" => config('app.debug') ? $e->getMessage() : '500 : '.HttpResponse::$statusTexts[500],
                 500
             ]);
         }
@@ -151,7 +152,7 @@ class UserProfileController extends Controller
         }catch(\Exception $e){
             return response()->json([
                 "status" => false,
-                "message" => config('app.debug') ? $e->getMessage() : ErrorMessage::HTTP[500],
+                "message" => config('app.debug') ? $e->getMessage() : '500 : '.HttpResponse::$statusTexts[500],
                 500
             ]);
         }
