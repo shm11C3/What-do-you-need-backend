@@ -54,6 +54,14 @@ class User extends Authenticatable
     ];
 
     /**
+     * ユーザーの投稿を取得
+     */
+    public function posts()
+    {
+        return $this->hasMany(Post::class, 'auth_id', 'auth_id');
+    }
+
+    /**
      * ユーザが論理削除されているかをDBから取得して確認
      *
      * @param object $u
