@@ -10,6 +10,16 @@ class PostCategory extends Model
     use HasFactory;
 
     /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'uuid',
+        'name'
+    ];
+
+    /**
      * カテゴリーの投稿を取得
      */
     public function posts()

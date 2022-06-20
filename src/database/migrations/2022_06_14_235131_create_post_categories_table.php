@@ -14,9 +14,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('categories', function (Blueprint $table) {
-            $table->uuid();
+        Schema::create('post_categories', function (Blueprint $table) {
+            $table->uuid()->primary();
             $table->string('name')->index();
+            $table->timestamps();
         });
     }
 
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('post_categories');
     }
 };

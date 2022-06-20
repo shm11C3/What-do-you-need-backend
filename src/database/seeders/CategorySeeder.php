@@ -23,7 +23,7 @@ class CategorySeeder extends Seeder
     public function run()
     {
         foreach(self::CATEGORIES as $category){
-            DB::table('categories')->insert([
+            DB::table('post_categories')->insert([
                 'uuid' => $category['uuid'],
                 'name' => $category['name']
             ]);
