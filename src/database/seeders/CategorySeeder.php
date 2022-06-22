@@ -25,7 +25,9 @@ class CategorySeeder extends Seeder
         foreach(self::CATEGORIES as $category){
             DB::table('post_categories')->insert([
                 'uuid' => $category['uuid'],
-                'name' => $category['name']
+                'name' => $category['name'],
+                'created_at' => date('c', strtotime('now')-100),
+                'updated_at' => date('c', strtotime('now')-100),
             ]);
         }
     }

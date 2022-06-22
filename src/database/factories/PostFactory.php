@@ -39,6 +39,8 @@ class PostFactory extends Factory
             'is_draft' => $is_draft,
             'is_publish' => $is_publish,
             'is_deleted' => $this->faker->boolean(),
+            'created_at' => date('c', strtotime('now')-100),
+            'updated_at' => date('c', strtotime('now')-100),
         ];
     }
 }

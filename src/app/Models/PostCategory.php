@@ -16,7 +16,9 @@ class PostCategory extends Model
      */
     protected $fillable = [
         'uuid',
-        'name'
+        'name',
+        'created_at',
+        'updated_at',
     ];
 
     /**

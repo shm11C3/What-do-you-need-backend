@@ -23,6 +23,8 @@ class Post extends Model
         'is_draft',
         'is_publish',
         'is_deleted',
+        'created_at',
+        'updated_at',
     ];
 
     /**
