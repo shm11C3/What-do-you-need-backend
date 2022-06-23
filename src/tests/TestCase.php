@@ -107,7 +107,7 @@ abstract class TestCase extends BaseTestCase
         Cache::forget($this->testing_auth_id);
     }
 
-        /**
+    /**
      * テスト用ユーザを削除
      *
      * @return void
@@ -115,6 +115,28 @@ abstract class TestCase extends BaseTestCase
     protected function deleteTestUser(): void
     {
         User::where('auth_id', $this->testing_auth_id)->delete();
+        Cache::forget($this->testing_auth_id);
+    }
+
+    /**
+     * テスト用ユーザを削除
+     *
+     * @return void
+     */
+    protected function softDeleteUser(): void
+    {
+        User::where('auth_id', $this->testing_auth_id)->update(['delete_flg' => 1]);
+        Cache::forget($this->testing_auth_id);
+    }
+
+    /**
+     * テスト用ユーザを削除から戻す
+     *
+     * @return void
+     */
+    protected function backFromSoftDeleteUser(): void
+    {
+        User::where('auth_id', $this->testing_auth_id)->update(['delete_flg' => 0]);
         Cache::forget($this->testing_auth_id);
     }
 

@@ -27,7 +27,7 @@ Route::group(['middleware' => ['auth0:any']], function () {
     Route::get('/posts', [PostController::class, 'getPosts'])->name('getPosts');
     Route::get('/posts/{category}', [PostController::class, 'getPosts'])->name('getPosts')->whereUuid('category');
 
-    //Route::get('/post/{uuid}', [PostController::class, 'getPost'])->name('getPost')->whereUuid('uuid');
+    Route::get('/post/{ulid}', [PostController::class, 'getPost'])->name('getPost')->whereAlphaNumeric('ulid');
 });
 
 // ログインユーザ用エンドポイント

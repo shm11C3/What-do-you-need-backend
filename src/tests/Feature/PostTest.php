@@ -86,10 +86,120 @@ class PostTest extends TestCase
         foreach(CategorySeeder::CATEGORIES as $category){
             $response->assertJsonMissingExact(['category_uuid' => $category['uuid']]); // 指定していないカテゴリは取得されない
         }
+
+        $this->refreshPost();
     }
 
     /**
-     * テスト用ユーザーデータを作成
+     * Test `/post/{ulid}`
+     *
+     * @return void
+     */
+    public function test_getPost()
+    {
+        $this->createTestPost();
+
+        $this->getJson('/post')->assertStatus(404);
+        $this->getJson('/post/01234567')->assertStatus(404);
+        $this->getJson('/post/01G68PASA5MMA0B1EHBDDDWBP5')->assertStatus(404);
+
+        // ログインせずにアクセス
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID);
+        $response->assertStatus(200)
+        ->assertJsonFragment(['ulid' => self::TESTING_POST_ULID]);
+
+        // ログインしてアクセス
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID, [
+            'Authorization' => 'Bearer '.$this->id_token
+        ]);
+        $response->assertStatus(200)
+        ->assertJsonFragment(['ulid' => self::TESTING_POST_ULID]);
+
+        // ログインして他人の非公開投稿にアクセス
+        $response = $this->getJson('/post/'.$this->getPrivatePost(), [
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->assertStatus(404);
+
+        /**
+         * 非公開投稿
+         */
+        $this->toPrivate();
+
+        // 投稿所有アカウントにログインしてアクセス
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID, [
+            'Authorization' => 'Bearer '.$this->id_token
+        ]);
+        $response->assertStatus(200)
+        ->assertJsonFragment(['ulid' => self::TESTING_POST_ULID, 'is_publish' => 0]);
+
+        // ログインせずにアクセス
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID)
+        ->assertStatus(404);
+
+        $this->toPublish();
+
+        /**
+         * 下書き状態
+         */
+        $this->toDraft();
+
+        // 投稿所有アカウントにログインしてアクセス
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID, [
+            'Authorization' => 'Bearer '.$this->id_token
+        ]);
+        $response->assertStatus(200)
+        ->assertJsonFragment(['ulid' => self::TESTING_POST_ULID, 'is_draft' => 1]);
+
+        // ログインせずにアクセス
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID)
+        ->assertStatus(404);
+
+        /**
+         * 下書き・非公開状態
+         */
+        $this->toPrivate();
+
+        // 投稿所有アカウントにログインしてアクセス
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID, [
+            'Authorization' => 'Bearer '.$this->id_token
+        ]);
+        $response->assertStatus(200)
+        ->assertJsonFragment(['ulid' => self::TESTING_POST_ULID, 'is_draft' => 1]);
+
+        // ログインせずにアクセス
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID)
+        ->assertStatus(404);
+
+        /**
+         * 投稿を論理削除
+         */
+        $this->softDelete();
+
+        // 投稿所有アカウントにログインしてアクセス
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID, [
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->assertStatus(404);
+
+        // ログインせずにアクセス
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID)
+        ->assertStatus(404);
+
+        $this->backFromSoftDelete();
+
+        /**
+         * ユーザーを削除
+         */
+        $this->softDeleteUser();
+
+        $response = $this->getJson('/post/'.self::TESTING_POST_ULID)
+        ->assertStatus(404);
+
+        $this->refreshPost();
+        $this->backFromSoftDeleteUser();
+    }
+
+    /**
+     * テスト用投稿データを作成
      *
      * @return void
      */
@@ -106,7 +216,7 @@ class PostTest extends TestCase
     }
 
     /**
-     * テスト用ユーザーデータを削除
+     * テスト用投稿データを削除
      *
      * @return void
      */
@@ -116,7 +226,7 @@ class PostTest extends TestCase
     }
 
     /**
-     * テスト用ユーザーデータを論理削除
+     * テスト用投稿データを論理削除
      *
      * @return void
      */
@@ -126,7 +236,17 @@ class PostTest extends TestCase
     }
 
     /**
-     * テスト用ユーザーデータを非公開状態に変更
+     * テスト用投稿データを論理削除
+     *
+     * @return void
+     */
+    private function backFromSoftDelete()
+    {
+        Post::where('ulid', self::TESTING_POST_ULID)->update(['is_deleted' => 0]);
+    }
+
+    /**
+     * テスト用投稿データを非公開状態に変更
      *
      * @return void
      */
@@ -136,12 +256,47 @@ class PostTest extends TestCase
     }
 
     /**
-     * テスト用ユーザーデータを公開状態に変更
+     * テスト用投稿データを公開状態に変更
      *
      * @return void
      */
     private function toPublish()
     {
         Post::where('ulid', self::TESTING_POST_ULID)->update(['is_publish' => 1]);
+    }
+
+    /**
+     * テスト用投稿データを下書状態に変更
+     *
+     * @return void
+     */
+    private function toDraft()
+    {
+        Post::where('ulid', self::TESTING_POST_ULID)->update(['is_draft' => 1]);
+    }
+
+    /**
+     * テスト用投稿データを下書きから戻す
+     *
+     * @return void
+     */
+    private function backFromDraft()
+    {
+        Post::where('ulid', self::TESTING_POST_ULID)->update(['is_draft' => 0]);
+    }
+
+    /**
+     * テストユーザー以外が作成した非公開投稿を取得
+     *
+     * @return string $ulid
+     */
+    private function getPrivatePost(): string
+    {
+        $private_post = Post::where('ulid', '!=', self::TESTING_POST_ULID)
+        ->where('is_publish', 0)
+        ->limit(1)
+        ->get('ulid');
+
+        return (string)$private_post[0]->ulid;
     }
 }

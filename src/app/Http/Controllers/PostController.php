@@ -75,4 +75,66 @@ class PostController extends Controller
 
         return response()->json(["status" => true, $data]);
     }
+
+    /**
+     * `ulid`に一致する投稿を取得
+     * `GET: posts`, `GET: posts/{category_uuid}`
+     *
+     * @param Request $request
+     * @param string $ulid
+     * @return void
+     */
+    public function getPost(Request $request, string $ulid)
+    {
+        // 引数が不正な場合は404を返す
+        if(!is_ulid($ulid)){
+            return abort(404);
+        }
+
+        $auth_id = $request->subject;
+
+        $post = DB::table('posts')
+        ->where('ulid', $ulid)
+        ->where('is_deleted', 0)
+        ->where('delete_flg', 0);
+
+        // ログイン時には自身の非公開投稿と下書きも取得する
+        if($auth_id){
+            $post = $post->where(function ($query) use ($auth_id) {
+                $query->where('is_publish', 1)
+                ->where('is_draft', 0)
+                ->orWhere('users.auth_id', $auth_id);
+            });
+        }else{
+            $post = $post->where('is_publish', 1)
+            ->where('is_draft', 0);
+        }
+        $data = $post->join('users', 'users.auth_id', 'posts.auth_id')
+        ->join('post_categories', 'post_categories.uuid', 'posts.category_uuid')
+        ->get([
+            'posts.ulid',
+            'posts.category_uuid',
+            'posts.title',
+            'posts.content',
+            'posts.is_draft',
+            'posts.is_publish',
+            'posts.is_deleted',
+            'posts.created_at',
+            'posts.updated_at',
+            'post_categories.uuid',
+            'post_categories.name',
+            'users.name',
+            'users.username',
+            'users.country_id',
+            'users.profile_img_uri',
+            'users.delete_flg as is_deleted_user',
+        ]);
+
+        // 値が存在しない場合は404を返す
+        if(!isset($data[0])){
+            return abort(404);
+        }
+
+        return response()->json(["status" => true, $data]);
+    }
 }
