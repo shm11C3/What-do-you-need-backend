@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreatePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Ulid\Ulid;
-use Tests\Feature\PostTest;
 
 class PostController extends Controller
 {
@@ -17,6 +19,45 @@ class PostController extends Controller
     public function __construct(Post $post)
     {
         $this->post = $post;
+    }
+
+    /**
+     * 投稿をDBに登録
+     * `POST: post/create`
+     *
+     * @param CreatePostRequest $request
+     * @return void
+     */
+    public function createPost(CreatePostRequest $request)
+    {
+        $auth_id = $request->subject;
+
+        // `is_draft`の値を検証
+        if(!$this->post->isValid_isDraft($request['is_draft'], $request['is_publish'])){
+            return abort(422);
+        }
+
+        $ulid = Ulid::generate();
+
+        try{
+            DB::table('posts')->insert([
+                'ulid' => $ulid,
+                'auth_id' => $auth_id,
+                'category_uuid' => $request['category_uuid'],
+                'title' => $request['title'],
+                'content' => $request['content'],
+                'is_draft' => $request['is_draft'],
+                'is_publish' => $request['is_publish'],
+            ]);
+        }catch (\Exception $e) {
+            return response()->json([
+                "status" => false,
+                "message" => config('app.debug') ? $e->getMessage() : '500 : '.HttpResponse::$statusTexts[500],
+                500
+            ]);
+        }
+
+        return response()->json(["status" => true, "ulid" => $ulid]);
     }
 
     /**

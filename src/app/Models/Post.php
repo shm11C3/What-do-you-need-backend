@@ -42,4 +42,16 @@ class Post extends Model
     {
         return $this->belongsTo(User::class, 'auth_id', 'auth_id');
     }
+
+    /**
+     * `is_draft`と`is_publish`を検証
+     *
+     * @param boolean $is_draft
+     * @param boolean $is_publish
+     * @return boolean
+     */
+    public function isValid_isDraft(bool $is_draft, bool $is_publish): bool
+    {
+        return !($is_draft * $is_publish);
+    }
 }

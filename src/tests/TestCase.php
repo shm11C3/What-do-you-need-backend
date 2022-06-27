@@ -140,4 +140,20 @@ abstract class TestCase extends BaseTestCase
         Cache::forget($this->testing_auth_id);
     }
 
+    /**
+     * ランダムな文字列を生成
+     *
+     * @param integer $length
+     * @return string
+     */
+    protected function generateRandStr(int $length): string
+    {
+        $str = chr(mt_rand(97, 122));
+        for($i = 1; $i < $length; $i++){
+            $str .= chr(mt_rand(97, 122));
+        }
+
+        return $str;
+    }
+
 }

@@ -12,13 +12,16 @@ class PostTest extends TestCase
 {
     use RefreshDatabase;
 
-    private $testing_post = [
-        'ulid' => self::TESTING_POST_ULID,
+    private $post_data = [
         'category_uuid' => self::TESTING_CATEGORY_UUID,
         'title' => self::TESTING_POST_TITLE,
         'content' => self::TESTING_POST_CONTENT,
         'is_draft' => false,
         'is_publish' => true,
+    ];
+
+    private $testing_post = [
+        'ulid' => self::TESTING_POST_ULID,
         'created_at' => null,
         'updated_at' => null,
         'auth_id' => null,
@@ -28,11 +31,65 @@ class PostTest extends TestCase
     public function setup(): void
     {
         parent::setUp();
+        $this->testing_post += $this->post_data;
         $this->seed('DatabaseSeeder');
         $this->storeIdToken();
         $this->createTestUser();
         $this->testing_post['auth_id'] = $this->testing_auth_id;
         $this->testing_post['created_at'] = $this->testing_post['updated_at'] = date('c');
+    }
+
+    /**
+     * Test `/post/create`
+     *
+     * @return void
+     */
+    public function test_createPost()
+    {
+        $this->createTestCategory();
+
+        $post_data = $this->testing_post;
+
+        // バリデーションを通過する最大文字数でテスト
+        $post_data['title'] = $this->generateRandStr(45);
+        $post_data['content'] = $this->generateRandStr(4096);
+
+        // 正常系
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('post/create', $post_data);
+
+        $response->assertStatus(200)->assertJsonFragment(["status" => true])->assertSee('ulid');
+
+        // バリデーション
+        $post_data['category_uuid'] = 1;
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('post/create', $post_data);
+
+        $response->assertStatus(422);
+        $post_data = $this->testing_post;
+
+        $post_data['title'] = $this->generateRandStr(46);
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('post/create', $post_data);
+        $response->assertStatus(422);
+
+        $post_data['content'] = $this->generateRandStr(4097);
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('post/create', $post_data);
+        $response->assertStatus(422);
+
+        $post_data = $this->testing_post;
+
+        $post_data['is_publish'] = $post_data['is_draft'] = true;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('post/create', $post_data);
+        $response->assertStatus(422);
     }
 
     /**
@@ -205,14 +262,23 @@ class PostTest extends TestCase
      */
     private function createTestPost()
     {
+        $this->createTestCategory();
+        Post::create($this->testing_post);
+    }
+
+    /**
+     * テスト用カテゴリを作成
+     *
+     * @return void
+     */
+    private function createTestCategory()
+    {
         PostCategory::create([
             'uuid' => self::TESTING_CATEGORY_UUID,
             'name' => self::TESTING_CATEGORY_NAME,
             'created_at' => date('c'),
             'updated_at' => date('c'),
         ]);
-
-        Post::create($this->testing_post);
     }
 
     /**
