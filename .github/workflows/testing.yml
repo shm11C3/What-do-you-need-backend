@@ -58,5 +58,5 @@ jobs:
 
       - name: Laravel PHPUnit Testing
         run:  |
-          composer dump-autoload
+          docker-compose exec -T app composer dump-autoload
           docker-compose exec -T app php artisan test --env=testing
