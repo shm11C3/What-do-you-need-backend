@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "32dcd1847730703b7a06f3eadf7331c5",
+    "content-hash": "f6a429468b6dcf2815d7e96c072d7ec2",
     "packages": [
         {
             "name": "auth0/auth0-php",
@@ -935,6 +935,66 @@
                 }
             ],
             "time": "2022-02-20T15:07:15+00:00"
+        },
+        {
+            "name": "goldspecdigital/laravel-eloquent-uuid",
+            "version": "v9.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/goldspecdigital/laravel-eloquent-uuid.git",
+                "reference": "315fe568de2fa520226740f76c774aa0ae80f292"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/goldspecdigital/laravel-eloquent-uuid/zipball/315fe568de2fa520226740f76c774aa0ae80f292",
+                "reference": "315fe568de2fa520226740f76c774aa0ae80f292",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^9.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "ext-pdo": "*",
+                "orchestra/testbench": "^7.0",
+                "phpunit/phpunit": "^9.5.10"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "GoldSpecDigital\\LaravelEloquentUUID\\UuidServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "GoldSpecDigital\\LaravelEloquentUUID\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Matthew Inamdar",
+                    "email": "matt@goldspecdigital.com"
+                }
+            ],
+            "description": "A simple drop-in solution for providing UUID support for the IDs of your Eloquent models.",
+            "homepage": "https://github.com/goldspecdigital/laravel-eloquent-uuid",
+            "keywords": [
+                "eloquent",
+                "laravel",
+                "php",
+                "uuid"
+            ],
+            "support": {
+                "issues": "https://github.com/goldspecdigital/laravel-eloquent-uuid/issues",
+                "source": "https://github.com/goldspecdigital/laravel-eloquent-uuid/tree/v9.0.0"
+            },
+            "time": "2022-02-09T14:36:29+00:00"
         },
         {
             "name": "graham-campbell/result-type",
@@ -3443,6 +3503,52 @@
                 }
             ],
             "time": "2022-03-27T21:42:02+00:00"
+        },
+        {
+            "name": "robinvdvleuten/ulid",
+            "version": "v5.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/robinvdvleuten/php-ulid.git",
+                "reference": "5389c9a2ff020815cc1f2b840334fdcb84ae3f35"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/robinvdvleuten/php-ulid/zipball/5389c9a2ff020815cc1f2b840334fdcb84ae3f35",
+                "reference": "5389c9a2ff020815cc1f2b840334fdcb84ae3f35",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2|^8.0"
+            },
+            "require-dev": {
+                "phpbench/phpbench": "^1.0.0-alpha3",
+                "phpunit/phpunit": "^8.5",
+                "symfony/phpunit-bridge": "^5.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Ulid\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Robin van der Vleuten",
+                    "email": "robin@webstronauts.co"
+                }
+            ],
+            "description": "Universally Unique Lexicographically Sortable Identifier (ULID) implementation for PHP.",
+            "homepage": "https://github.com/robinvdvleuten/php-ulid",
+            "support": {
+                "issues": "https://github.com/robinvdvleuten/php-ulid/issues",
+                "source": "https://github.com/robinvdvleuten/php-ulid/tree/v5.0.0"
+            },
+            "time": "2020-12-06T19:13:21+00:00"
         },
         {
             "name": "symfony/cache",

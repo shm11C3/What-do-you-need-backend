@@ -11,6 +11,7 @@ use Auth0\SDK\Auth0;
 use Auth0\SDK\Token;
 use Closure;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class CheckIdToken
 {
@@ -33,34 +34,44 @@ class CheckIdToken
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
+     * @param  string $role
      * @return mixed
      */
-    public function handle($request, Closure $next)
+    public function handle(Request $request, Closure $next, string $role)
     {
         $request_status = $request->getClientIp().' '.$request->method().': '.$request->fullUrl();
 
-        $configure = [
+        // 不正なパラメータをバリデーション
+        if($request->subject || $request->user){
+            Log::error('[Request Error] '.$request_status.' Invalid parameter.');
+            return response()->json(["message" => '422 : '.HttpResponse::$statusTexts[422]], 422);
+        }
+
+        // リクエストヘッダにBearerトークンが存在するか確認
+        if (empty($request->bearerToken())) {
+            // IDトークンが存在しなくても権限が`any`の場合はコントローラに渡す
+            if($role == 'any'){
+                return $next($request);
+            }
+
+            Log::error('[Token Error] '.$request_status.' Token does not exist.');
+            return response()->json(ErrorMessage::MESSAGES['token_does_not_exist'], 401);
+        }
+
+        $id_token = $request->bearerToken();
+
+        $auth0 = new Auth0([
             'domain'       => config('auth0.domain'),
             'clientId'     => config('auth0.clientId'),
             'clientSecret' => config('auth0.clientSecret'),
             'tokenJwksUri' => 'https://'.config('auth0.domain').'/.well-known/jwks.json',
             'tokenCache' => null,
             'tokenCacheTtl' => 43200
-        ];
-
-        $auth0 = new Auth0($configure);
+        ]);
 
         // SDKの設定でキャッシュを有効化させる
         $tokenCache = new FilesystemAdapter();
         $auth0->configuration()->setTokenCache($tokenCache);
-
-        // リクエストヘッダにBearerトークンが存在するか確認
-        if (empty($request->bearerToken())) {
-            Log::error('[Token Error] '.$request_status.' Token does not exist. ');
-            return response()->json(ErrorMessage::MESSAGES['token_does_not_exist'], 401);
-        }
-
-        $id_token = $request->bearerToken();
 
         // IDトークンの検証・デコード
         try {
