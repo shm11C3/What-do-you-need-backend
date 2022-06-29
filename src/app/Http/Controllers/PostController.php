@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreatePostRequest;
+use App\Http\Requests\DeletePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
@@ -212,8 +213,7 @@ class PostController extends Controller
         $ulid = $request['ulid'];
 
         // ulidを検証、権限がない場合は403
-        $post_owner = DB::table('posts')->where('ulid', $ulid)->where('is_deleted', 0)->get('posts.auth_id');
-        $post_owner = $post_owner[0]->auth_id ?? null;
+        $post_owner = $this->post->getPostOwner($ulid);
 
         if(!$post_owner){
             return abort(404);
@@ -239,5 +239,38 @@ class PostController extends Controller
         }
 
         return response()->json(["status" => true]);
+    }
+
+    public function deletePost(DeletePostRequest $request)
+    {
+        if(!$request->user){
+            return abort(404);
+        }
+
+        $auth_id = $request->subject;
+        $ulid = $request['ulid'];
+
+        // ulidを検証、権限がない場合は403
+        $post_owner = $this->post->getPostOwner($ulid);
+
+        if(!$post_owner){
+            return abort(404);
+        }elseif($post_owner !== $auth_id){
+            return abort(403);
+        }
+
+        try{
+            DB::table('posts')->where('ulid', $ulid)->update([
+                'is_deleted' => true
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                "status" => false,
+                "message" => config('app.debug') ? $e->getMessage() : '500 : '.HttpResponse::$statusTexts[500],
+                500
+            ]);
+        }
+
+        return response()->json(["status" => true, "ulid" => $ulid]);
     }
 }

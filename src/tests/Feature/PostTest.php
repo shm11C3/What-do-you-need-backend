@@ -391,6 +391,58 @@ class PostTest extends TestCase
         ])->putJson('post/update', $post_data);
     }
 
+    public function test_deletePost()
+    {
+        $this->regeneratePost();
+
+        // 正常系
+        $ulid = self::TESTING_POST_ULID;
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('post/delete', ['ulid' => $ulid]);
+
+        $response->assertStatus(200)->assertJsonFragment(["status" => true])->assertSee('ulid');
+
+        // 削除されているか確認
+        $this->getJson('/post/'.self::TESTING_POST_ULID)
+        ->assertStatus(404);
+
+        $this->withHeaders(['Authorization' => 'Bearer '.$this->id_token])
+        ->updatePost(['ulid' => $ulid] + $this->post_data)
+        ->assertStatus(404);
+
+        $this->withHeaders(['Authorization' => 'Bearer '.$this->id_token])
+        ->deleteJson('post/delete', ['ulid' => $ulid])
+        ->assertStatus(404);
+
+        $this->regeneratePost();
+
+        // 削除されたユーザーは投稿削除できない
+        $this->softDeleteUser();
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('post/delete', ['ulid' => $ulid]);
+
+        $response->assertStatus(404);
+
+        $this->backFromSoftDeleteUser();
+
+        // 他人の投稿は削除できない
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('post/delete', ['ulid' => $this->getOtherUserPost($this->testing_auth_id)]);
+
+        $response->assertStatus(403);
+
+        // 存在しない投稿は削除できない
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('post/delete', ['ulid' => (string)Ulid::generate()]);
+
+        $response->assertStatus(404);
+    }
+
     /**
      * テスト用投稿データを作成
      *
@@ -518,7 +570,7 @@ class PostTest extends TestCase
      * 他人が作成した投稿のulidを取得
      *
      * @param string $auth_id
-     * @return string
+     * @return string $other_user_post_ulid
      */
     private function getOtherUserPost(string $auth_id): string
     {

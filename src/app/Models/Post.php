@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Post extends Model
 {
@@ -67,5 +68,17 @@ class Post extends Model
     public function isValid_publish(string $content, string $title, bool $is_publish): bool
     {
         return (!$is_publish || $content && $title);
+    }
+
+     /**
+      * `ulid`の投稿の投稿者`auth_id`取得する
+      *
+      * @param string $ulid
+      * @return string|null
+      */
+    public function getPostOwner(string $ulid): ?string
+    {
+        $post_owner = DB::table('posts')->where('ulid', $ulid)->where('is_deleted', 0)->get('posts.auth_id');
+        return $post_owner[0]->auth_id ?? null;
     }
 }

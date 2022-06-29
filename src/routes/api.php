@@ -46,6 +46,6 @@ Route::group(['middleware' => ['auth0:auth']], function () {
     Route::post('/post/create', [PostController::class, 'createPost']);
 
     Route::put('/post/update', [PostController::class, 'updatePost'])->name('updatePost');
-//
-//    Route::delete('post/delete/{ulid}', [PostController::class, 'deletePost'])->name('deletePost')->whereAlphaNumeric('ulid');
+
+    Route::delete('/post/delete', [PostController::class, 'deletePost'])->name('deletePost');
 });
