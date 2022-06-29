@@ -25,6 +25,7 @@ class PostController extends Controller
      * 投稿をDBに登録
      * `POST: post/create`
      *
+     * @todo `isValid_publish()`を追加する
      * @param CreatePostRequest $request
      * @return void
      */
@@ -177,5 +178,63 @@ class PostController extends Controller
         }
 
         return response()->json(["status" => true, $data]);
+    }
+
+    /**
+     * `ulid`に一致する投稿を更新
+     * `PUT: /posts/update`
+     *
+     * @param UpdatePostRequest $request
+     * @return void
+     */
+    public function updatePost(UpdatePostRequest $request)
+    {
+        if(!$request->user){
+            return abort(404);
+        }
+
+        $auth_id = $request->subject;
+        $is_draft = $request['is_draft'];
+        $is_publish = $request['is_publish'];
+        $content = $request['content'];
+        $title = $request['title'];
+
+        // `is_draft`の値を検証
+        if(!$this->post->isValid_publish($content, $title, $is_publish) ||
+            !$this->post->isValid_isDraft($is_draft, $is_publish)
+        ){
+            return abort(422);
+        }
+
+        $ulid = $request['ulid'];
+
+        // ulidを検証、権限がない場合は403
+        $post_owner = DB::table('posts')->where('ulid', $ulid)->where('is_deleted', 0)->get('posts.auth_id');
+        $post_owner = $post_owner[0]->auth_id ?? null;
+
+        if(!$post_owner){
+            return abort(404);
+        }elseif($post_owner !== $auth_id){
+            return abort(403);
+        }
+
+        try{
+            DB::table('posts')->where('ulid', $ulid)->update([
+                'category_uuid' => $request['category_uuid'],
+                'title' => $request['title'],
+                'content' => $request['content'],
+                'is_draft' => $request['is_draft'],
+                'is_publish' => $request['is_publish'],
+                'updated_at' => now()
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                "status" => false,
+                "message" => config('app.debug') ? $e->getMessage() : '500 : '.HttpResponse::$statusTexts[500],
+                500
+            ]);
+        }
+
+        return response()->json(["status" => true]);
     }
 }

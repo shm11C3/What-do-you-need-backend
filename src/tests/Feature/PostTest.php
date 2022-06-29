@@ -7,6 +7,7 @@ use App\Models\PostCategory;
 use Database\Seeders\CategorySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Ulid\Ulid;
 
 class PostTest extends TestCase
 {
@@ -256,6 +257,128 @@ class PostTest extends TestCase
     }
 
     /**
+     * Test `/post/update`
+     *
+     * @return void
+     */
+    public function test_updatePost()
+    {
+        $this->createTestPost();
+
+        // 更新前の投稿
+        $post_before_updated = [
+            'category_uuid' => self::TESTING_CATEGORY_UUID,
+            'title' => self::TESTING_POST_TITLE,
+            'content' => self::TESTING_POST_CONTENT,
+            'is_draft' => 0,
+            'is_publish' => 1,
+        ];
+
+        $ulid = self::TESTING_POST_ULID;
+        $post_data = ['ulid' => $ulid] + $this->post_data;
+        $post_data['content'] = 'Updated post';
+
+        // 正常系
+        $this->getJson('/post/'.self::TESTING_POST_ULID) // 更新前
+        ->assertJsonFragment(["content" => self::TESTING_POST_CONTENT]);
+
+        $response = $this->updatePost($post_data);
+        $response->assertStatus(200)
+        ->assertJsonFragment(["status" => true]);
+
+        $a= $this->getJson('/post/'.self::TESTING_POST_ULID) // 更新後
+        ->assertJsonFragment(["content" => 'Updated post']);
+
+        $this->regeneratePost();
+
+        // バリデーションテスト
+        $post_data['ulid'] = 'test';
+        $response = $this->updatePost($post_data);
+        $response->assertStatus(422);
+        $post_data['ulid'] = $ulid;
+
+        $post_data['is_draft'] = $post_data['is_publish'] = true;
+        $response = $this->updatePost($post_data);
+        $response->assertStatus(422);
+        $post_data = ['ulid' => $ulid] + $this->post_data;
+
+        $post_data['title'] = '';
+        $response = $this->updatePost($post_data);
+        $response->assertStatus(422);
+        $post_data = ['ulid' => $ulid] + $this->post_data;
+
+        $post_data['content'] = '';
+        $response = $this->updatePost($post_data);
+        $response->assertStatus(422);
+        $post_data = ['ulid' => $ulid] + $this->post_data;
+
+        $post_data['title'] = $post_data['content']= '';
+        $response = $this->updatePost($post_data);
+        $response->assertStatus(422);
+        $post_data = ['ulid' => $ulid] + $this->post_data;
+
+        $this->getJson('/post/'.self::TESTING_POST_ULID) // 更新されない
+        ->assertJsonFragment($post_before_updated);
+
+        // 他人の投稿は改変できない
+        $post_data['ulid'] =  $this->getOtherUserPost($this->testing_auth_id);
+        $response = $this->updatePost($post_data);
+        $response->assertStatus(403);
+
+        $this->getJson('/post/'.self::TESTING_POST_ULID) // 更新されない
+        ->assertJsonFragment($post_before_updated);
+
+        // 存在しないulidでは投稿できない
+        $post_data['ulid'] =  (string)Ulid::generate();
+        $response = $this->updatePost($post_data);
+        $response->assertStatus(404);
+
+        $this->getJson('/post/'.self::TESTING_POST_ULID) // 更新されない
+        ->assertJsonFragment($post_before_updated);
+
+        $post_data = ['ulid' => $ulid] + $this->post_data;
+
+        // ログインぜずにアクセス
+        $response = $this->withHeaders([
+            'Authorization' => null
+        ])->putJson('post/update', $post_data);
+        $response = $this->putJson('post/update', $post_data);
+        $response->assertStatus(401);
+
+        $this->getJson('/post/'.self::TESTING_POST_ULID) // 更新されない
+        ->assertJsonFragment($post_before_updated);
+
+        // 削除された投稿は改変できない
+        $this->softDelete();
+
+        $response = $this->updatePost($post_data);
+        $response->assertStatus(404);
+
+        $this->backFromSoftDelete();
+
+        // 削除されたユーザーの投稿は改変できない
+        $this->softDeleteUser();
+
+        $response = $this->updatePost($post_data);
+        $response->assertStatus(404);
+
+        $this->backFromSoftDeleteUser();
+    }
+
+    /**
+     * 'post/update'に$post_dataをPUTする
+     *
+     * @param array $post_data
+     * @return object
+     */
+    private function updatePost(array $post_data): object
+    {
+        return $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->putJson('post/update', $post_data);
+    }
+
+    /**
      * テスト用投稿データを作成
      *
      * @return void
@@ -289,6 +412,18 @@ class PostTest extends TestCase
     private function refreshPost()
     {
         Post::where('ulid', self::TESTING_POST_ULID)->delete();
+        PostCategory::where('uuid', self::TESTING_CATEGORY_UUID)->delete();
+    }
+
+    /**
+     * テスト用データを再生成
+     *
+     * @return void
+     */
+    private function regeneratePost()
+    {
+        $this->refreshPost();
+        $this->createTestPost();
     }
 
     /**
@@ -364,5 +499,21 @@ class PostTest extends TestCase
         ->get('ulid');
 
         return (string)$private_post[0]->ulid;
+    }
+
+    /**
+     * 他人が作成した投稿のulidを取得
+     *
+     * @param string $auth_id
+     * @return string
+     */
+    private function getOtherUserPost(string $auth_id): string
+    {
+        $other_user_post = Post::where('auth_id', '!=', $auth_id)
+        ->where('is_deleted', 0)
+        ->limit(1)
+        ->get('ulid');
+
+        return (string)$other_user_post[0]->ulid;
     }
 }

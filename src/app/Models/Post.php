@@ -52,6 +52,20 @@ class Post extends Model
      */
     public function isValid_isDraft(bool $is_draft, bool $is_publish): bool
     {
-        return !($is_draft * $is_publish);
+        return !($is_draft && $is_publish);
+    }
+
+    /**
+     * `$is-publish`を検証する
+     * `$content`, `$title`の値がnullの場合`$is_publish`はtrueを許可しない
+     *
+     * @param string $content
+     * @param string $title
+     * @param boolean $is_publish
+     * @return boolean
+     */
+    public function isValid_publish(string $content, string $title, bool $is_publish): bool
+    {
+        return (!$is_publish || $content && $title);
     }
 }
