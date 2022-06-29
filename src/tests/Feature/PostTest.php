@@ -91,6 +91,19 @@ class PostTest extends TestCase
             'Authorization' => 'Bearer '.$this->id_token
         ])->postJson('post/create', $post_data);
         $response->assertStatus(422);
+
+        $post_data = $this->testing_post;
+
+        // 削除されたユーザーでは作成できない
+        $this->softDeleteUser();
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('post/create', $post_data);
+
+        $response->assertStatus(401);
+
+        $this->backFromSoftDeleteUser();
     }
 
     /**

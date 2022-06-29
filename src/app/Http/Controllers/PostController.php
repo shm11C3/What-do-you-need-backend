@@ -31,6 +31,9 @@ class PostController extends Controller
      */
     public function createPost(CreatePostRequest $request)
     {
+        if(!$request->user){
+            return abort(401);
+        }
         $auth_id = $request->subject;
 
         // `is_draft`の値を検証
