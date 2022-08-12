@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Rules\CountryIdRule;
+use App\Rules\UsernameRule;
 
 class UpdateUserRequest extends ApiRequest
 {
@@ -15,7 +16,7 @@ class UpdateUserRequest extends ApiRequest
     {
         return [
             'name'       => 'string|max:45',
-            'username'   => 'string|max:16|alpha_dash',
+            'username'   => ['string', 'max:16', new UsernameRule],
             'country_id' => ['integer', new CountryIdRule],
         ];
     }

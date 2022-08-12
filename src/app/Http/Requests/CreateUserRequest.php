@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Rules\CountryIdRule;
+use App\Rules\UsernameRule;
 
 class CreateUserRequest extends ApiRequest
 {
@@ -15,7 +16,7 @@ class CreateUserRequest extends ApiRequest
     {
         return [
             'name'       => 'required|string|max:45',
-            'username'   => 'required|string|max:16|alpha_dash|unique:users,username',
+            'username'   => ['required', 'string', 'max:16', 'unique:users,username', new UsernameRule],
             'country_id' => ['required', 'integer', new CountryIdRule],
         ];
     }
