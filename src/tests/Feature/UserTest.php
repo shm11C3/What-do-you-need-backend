@@ -88,9 +88,6 @@ class UserTest extends TestCase
             'country_id' => self::TESTING_COUNTRY_ID,
         ]);
 
-        $response->assertStatus(422)->assertJson(ErrorMessage::MESSAGES['user_already_exist']);
-
-
         $this->deleteTestUser();
 
         // usernameのバリデーションを確認
@@ -129,6 +126,30 @@ class UserTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+
+        // 英字以外の文字は入力できない
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('user/create', [
+            'name' => self::TESTING_NAME,
+            'username' => 'あいうえお',
+            'country_id' => self::TESTING_COUNTRY_ID,
+        ]);
+
+        $response->assertStatus(422);
+
+        // 数字は登録できる
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->postJson('user/create', [
+            'name' => self::TESTING_NAME,
+            'username' => '000',
+            'country_id' => self::TESTING_COUNTRY_ID,
+        ]);
+
+        $response->assertStatus(200);
+
+        $this->deleteTestUser();
     }
 
     /**
