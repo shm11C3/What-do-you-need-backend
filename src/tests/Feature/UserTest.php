@@ -243,4 +243,30 @@ class UserTest extends TestCase
         ]);
 
     }
+
+    /**
+     * Test `/user/username/exists`
+     *
+     * @return void
+     */
+    public function test_duplicateUsername_exists()
+    {
+        $this->getJson('/user/username/exists')
+        ->assertStatus(400);
+
+        $this->getJson('/user/username/exists?username='.self::TESTING_USERNAME)
+        ->assertStatus(200)->assertJson([
+            'result' => true,
+        ]);
+
+        $this->deleteTestUser();
+
+        $this->getJson('/user/username/exists?username='.self::TESTING_USERNAME)
+        ->assertStatus(200)->assertJson([
+            'result' => false,
+        ]);
+
+
+
+    }
 }

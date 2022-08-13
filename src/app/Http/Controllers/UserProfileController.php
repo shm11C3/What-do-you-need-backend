@@ -161,4 +161,20 @@ class UserProfileController extends Controller
 
         return response()->json(["status" => true]);
     }
+
+    /**
+     * `username`の重複をチェックする
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function duplicateUsername_exists(Request $request)
+    {
+        if(!$request->username){
+            return abort(400);
+        }
+        $result = (bool) count(DB::table('users')->where('username', $request->username)->limit(1)->get('username'));
+
+        return response()->json(["result" => $result]);
+    }
 }
