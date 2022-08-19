@@ -77,7 +77,8 @@ class UserTest extends TestCase
             'name' => self::TESTING_NAME,
             'username' => self::TESTING_USERNAME,
             'country_id' => self::TESTING_COUNTRY_ID,
-        ]);
+        ])->assertJsonMissingExact(['created_at' => null])
+        ->assertJsonMissingExact(['updated_at' => null]);
 
         // 重複した auth_id の登録はできない
         $response = $this->withHeaders([
