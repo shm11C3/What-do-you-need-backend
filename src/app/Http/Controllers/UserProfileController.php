@@ -42,14 +42,18 @@ class UserProfileController extends Controller
                     'name'       => $request['name'],
                     'username'   => $request['username'],
                     'country_id' => $request['country_id'],
-                    'delete_flg' => 0
+                    'delete_flg' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }else{
                 DB::table('users')->insert([
                     'auth_id'    => $request->subject,
                     'name'       => $request['name'],
                     'username'   => $request['username'],
-                    'country_id' => $request['country_id']
+                    'country_id' => $request['country_id'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
@@ -108,7 +112,8 @@ class UserProfileController extends Controller
         $user_data = $this->user->mergeUpdateUserData([
             'name'       => $request['name'],
             'username'   => $request['username'],
-            'country_id' => $request['country_id']
+            'country_id' => $request['country_id'],
+            'updated_at' => now(),
         ]);
 
         if(!$user_data){
