@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PostController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -50,4 +51,7 @@ Route::group(['middleware' => ['auth0:auth']], function () {
     Route::put('/post/update', [PostController::class, 'updatePost'])->name('updatePost');
 
     Route::delete('/post/delete', [PostController::class, 'deletePost'])->name('deletePost');
+
+    // AuthController
+    Route::post('/auth/change-password', [AuthController::class, 'requestResetPasswordMail']);
 });
