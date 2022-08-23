@@ -42,7 +42,7 @@ class CheckIdToken
         $request_status = $request->getClientIp().' '.$request->method().': '.$request->fullUrl();
 
         // 不正なパラメータをバリデーション
-        if($request->subject || $request->user){
+        if($request->subject || $request->user || $request->email){
             Log::error('[Request Error] '.$request_status.' Invalid parameter.');
             return response()->json(["message" => '422 : '.HttpResponse::$statusTexts[422]], 422);
         }
@@ -96,7 +96,8 @@ class CheckIdToken
         // user_idを$requestに追加する。
         $request->merge([
             'subject' => $this->auth_id,
-            'user' => $user
+            'email' => $payload->email,
+            'user' => $user,
         ]);
 
         return $next($request);
