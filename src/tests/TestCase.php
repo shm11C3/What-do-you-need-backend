@@ -5,6 +5,8 @@ namespace Tests;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
+use Auth0\SDK\Auth0;
+use Auth0\SDK\Configuration\SdkConfiguration;
 use Illuminate\Support\Facades\Cache;
 
 abstract class TestCase extends BaseTestCase
@@ -68,6 +70,28 @@ abstract class TestCase extends BaseTestCase
 
         $token = json_decode($token);
         return $token->id_token;
+    }
+
+    /**
+     * Auth0のユーザーを作成
+     *
+     * @return void
+     */
+    protected function createAuth0User(): void
+    {
+        $configuration = new SdkConfiguration([
+            'domain' => config('auth0.domain'),
+            'clientId' => config('auth0.managementId'),
+            'clientSecret' => config('auth0.managementSecret'),
+        ]);
+
+        $auth0 = new Auth0($configuration);
+
+        $auth0->management()->users()->create('Username-Password-Authentication', [
+            'email' => config('auth0.testUsername'),
+            'password' => config('auth0.testUserPass'),
+            'email_verified' => false,
+        ]);
     }
 
     /**

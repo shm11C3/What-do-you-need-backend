@@ -231,6 +231,7 @@ class UserTest extends TestCase
         ]);
 
         // 削除後に再登録できるか
+        $this->createAuth0User();
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
         ])->postJson('user/create', [
@@ -242,7 +243,6 @@ class UserTest extends TestCase
         $response->assertStatus(200)->assertJson([
             "status" => true
         ]);
-
     }
 
     /**
@@ -266,8 +266,5 @@ class UserTest extends TestCase
         ->assertStatus(200)->assertJson([
             'result' => false,
         ]);
-
-
-
     }
 }

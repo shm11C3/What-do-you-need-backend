@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateUserRequest;
 use App\Consts\ErrorMessage;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Auth;
 use App\Models\User;
 use App\Models\Country;
 use Illuminate\Http\Request;
@@ -17,9 +18,10 @@ class UserProfileController extends Controller
     /**
      * @param User $user
      */
-    public function __construct(User $user)
+    public function __construct(User $user, Auth $auth)
     {
         $this->user = $user;
+        $this->auth = $auth;
     }
 
     /**
@@ -153,6 +155,8 @@ class UserProfileController extends Controller
                 'username' => null,
                 'delete_flg' => 1
             ]);
+
+            $this->auth->deleteAuth0Account($request->subject);
 
         }catch(\Exception $e){
             return response()->json([
