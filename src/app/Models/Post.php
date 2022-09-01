@@ -65,9 +65,13 @@ class Post extends Model
      * @param boolean $is_publish
      * @return boolean
      */
-    public function isValid_publish(string $content, string $title, bool $is_publish): bool
-    {
-        return (!$is_publish || $content && $title);
+    public function isValid_publish(
+        ?string $content,
+        ?string $title,
+        ?string $category_uuid,
+        bool $is_publish
+    ): bool {
+        return (!$is_publish || ($content && $title && $category_uuid));
     }
 
      /**

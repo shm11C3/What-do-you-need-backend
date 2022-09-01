@@ -24,9 +24,9 @@ class CreatePostRequest extends FormRequest
     public function rules()
     {
         return [
-            'category_uuid' => 'required|uuid|exists:post_categories,uuid',
-            'title' => 'required|string|max:45',
-            'content' => 'required|string|max:4096',
+            'category_uuid' => 'nullable|exists:post_categories,uuid',
+            'title' => 'nullable|string|max:45',
+            'content' => 'nullable|string|max:4096',
             'is_draft' => 'required|boolean',
             'is_publish' => 'required|boolean',
         ];
