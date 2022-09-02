@@ -455,21 +455,6 @@ class PostTest extends TestCase
     }
 
     /**
-     * テスト用カテゴリを作成
-     *
-     * @return void
-     */
-    private function createTestCategory()
-    {
-        PostCategory::create([
-            'uuid' => self::TESTING_CATEGORY_UUID,
-            'name' => self::TESTING_CATEGORY_NAME,
-            'created_at' => date('c'),
-            'updated_at' => date('c'),
-        ]);
-    }
-
-    /**
      * テスト用投稿データを削除
      *
      * @return void
