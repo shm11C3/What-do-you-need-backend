@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Models\PostCategory;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
@@ -91,6 +92,7 @@ abstract class TestCase extends BaseTestCase
             'email' => config('auth0.testUsername'),
             'password' => config('auth0.testUserPass'),
             'email_verified' => false,
+            'verify_email' => false,
         ]);
     }
 
@@ -180,4 +182,18 @@ abstract class TestCase extends BaseTestCase
         return $str;
     }
 
+    /**
+     * Create category data for testing.
+     *
+     * @return void
+     */
+    protected function createTestCategory()
+    {
+        PostCategory::create([
+            'uuid' => self::TESTING_CATEGORY_UUID,
+            'name' => self::TESTING_CATEGORY_NAME,
+            'created_at' => date('c'),
+            'updated_at' => date('c'),
+        ]);
+    }
 }

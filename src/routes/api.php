@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,8 @@ Route::group(['middleware' => ['auth0:any']], function () {
     Route::get('/post/{ulid}', [PostController::class, 'getPost'])->name('getPost')->whereAlphaNumeric('ulid');
 
     Route::get('/user/username/exists', [UserProfileController::class, 'duplicateUsername_exists']);
+
+    Route::get('/categories', [CategoryController::class, 'getCategories']);
 });
 
 // ログインユーザ用エンドポイント
