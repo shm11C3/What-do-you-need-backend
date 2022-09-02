@@ -38,7 +38,9 @@ class PostController extends Controller
         $auth_id = $request->subject;
 
         // `is_draft`の値を検証
-        if(!$this->post->isValid_isDraft($request['is_draft'], $request['is_publish'])){
+        if(!$this->post->isValid_isDraft($request['is_draft'], $request['is_publish']) ||
+            !$this->post->isValid_publish($request['content'], $request['title'], $request['category_uuid'], $request['is_publish'])
+        ){
             return abort(422);
         }
 
@@ -200,11 +202,12 @@ class PostController extends Controller
         $auth_id = $request->subject;
         $is_draft = $request['is_draft'];
         $is_publish = $request['is_publish'];
+        $category_uuid = $request['category_uuid'];
         $content = $request['content'];
         $title = $request['title'];
 
         // `is_draft`の値を検証
-        if(!$this->post->isValid_publish($content, $title, $is_publish) ||
+        if(!$this->post->isValid_publish($content, $title, $category_uuid, $is_publish) ||
             !$this->post->isValid_isDraft($is_draft, $is_publish)
         ){
             return abort(422);
