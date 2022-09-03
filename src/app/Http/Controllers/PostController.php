@@ -55,6 +55,8 @@ class PostController extends Controller
                 'content' => $request['content'],
                 'is_draft' => $request['is_draft'],
                 'is_publish' => $request['is_publish'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }catch (\Exception $e) {
             return response()->json([
@@ -64,7 +66,7 @@ class PostController extends Controller
             ]);
         }
 
-        return response()->json(["status" => true, "ulid" => $ulid]);
+        return response()->json(["status" => true, "ulid" => (string)$ulid]);
     }
 
     /**
@@ -241,7 +243,7 @@ class PostController extends Controller
             ]);
         }
 
-        return response()->json(["status" => true]);
+        return response()->json(["status" => true, "ulid" => (string)$ulid]);
     }
 
     public function deletePost(DeletePostRequest $request)
