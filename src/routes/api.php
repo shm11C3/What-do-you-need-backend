@@ -29,7 +29,7 @@ Route::group(['middleware' => ['auth0:any']], function () {
     Route::get('/posts', [PostController::class, 'getPosts'])->name('getPosts');
     Route::get('/posts/{category}', [PostController::class, 'getPosts'])->name('getPosts')->whereUuid('category');
 
-    Route::get('/post/{ulid}', [PostController::class, 'getPost'])->name('getPost')->whereAlphaNumeric('ulid');
+    Route::get('/post/{ulid}', [PostController::class, 'getPost'])->name('getPost')->where('ulid', '[0-9a-hjkmnp-zA-HJKMNP-Z]{26}');
 
     Route::get('/user/username/exists', [UserProfileController::class, 'duplicateUsername_exists']);
 
@@ -54,6 +54,8 @@ Route::group(['middleware' => ['auth0:auth']], function () {
     Route::put('/post/update', [PostController::class, 'updatePost'])->name('updatePost');
 
     Route::delete('/post/delete', [PostController::class, 'deletePost'])->name('deletePost');
+
+    Route::get('/post/drafts', [PostController::class, 'getDrafts'])->name('getDrafts');
 
     // AuthController
     Route::post('/auth/change-password', [AuthController::class, 'requestResetPasswordMail']);

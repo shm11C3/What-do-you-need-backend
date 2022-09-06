@@ -278,4 +278,33 @@ class PostController extends Controller
 
         return response()->json(["status" => true, "ulid" => $ulid]);
     }
+
+    /**
+     * Retrieve and return a list of drafts created by authenticated user
+     *
+     * @param Request $request
+     * @return response
+     */
+    public function getDrafts(Request $request)
+    {
+        $auth_id = $request->subject;
+
+        $data = Post::where('posts.is_deleted', 0)
+        ->where('is_draft', 1)
+        ->where('auth_id', $auth_id)
+        ->select([
+            'posts.ulid',
+            'posts.category_uuid',
+            'posts.title',
+            'posts.content',
+            'posts.is_draft',
+            'posts.is_publish',
+            'posts.is_deleted',
+            'posts.created_at',
+            'posts.updated_at',
+        ])
+        ->simplePaginate(30);
+
+        return response()->json(["status" => true, $data]);
+    }
 }
