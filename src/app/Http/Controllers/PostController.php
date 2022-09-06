@@ -55,6 +55,8 @@ class PostController extends Controller
                 'content' => $request['content'],
                 'is_draft' => $request['is_draft'],
                 'is_publish' => $request['is_publish'],
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }catch (\Exception $e) {
             return response()->json([
@@ -64,7 +66,7 @@ class PostController extends Controller
             ]);
         }
 
-        return response()->json(["status" => true, "ulid" => $ulid]);
+        return response()->json(["status" => true, "ulid" => (string)$ulid]);
     }
 
     /**
@@ -241,7 +243,7 @@ class PostController extends Controller
             ]);
         }
 
-        return response()->json(["status" => true]);
+        return response()->json(["status" => true, "ulid" => (string)$ulid]);
     }
 
     public function deletePost(DeletePostRequest $request)
@@ -275,5 +277,34 @@ class PostController extends Controller
         }
 
         return response()->json(["status" => true, "ulid" => $ulid]);
+    }
+
+    /**
+     * Retrieve and return a list of drafts created by authenticated user
+     *
+     * @param Request $request
+     * @return response
+     */
+    public function getDrafts(Request $request)
+    {
+        $auth_id = $request->subject;
+
+        $data = Post::where('posts.is_deleted', 0)
+        ->where('is_draft', 1)
+        ->where('auth_id', $auth_id)
+        ->select([
+            'posts.ulid',
+            'posts.category_uuid',
+            'posts.title',
+            'posts.content',
+            'posts.is_draft',
+            'posts.is_publish',
+            'posts.is_deleted',
+            'posts.created_at',
+            'posts.updated_at',
+        ])
+        ->simplePaginate(30);
+
+        return response()->json(["status" => true, $data]);
     }
 }

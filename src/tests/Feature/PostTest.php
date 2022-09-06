@@ -444,6 +444,32 @@ class PostTest extends TestCase
     }
 
     /**
+     * Test `/post/drafts`
+     *
+     * @return void
+     */
+    public function test_getDrafts(): void
+    {
+        $this->regeneratePost();
+        $this->toDraft();
+        $this->toPrivate();
+
+        $other_user_ost_ulid = $this->getOtherUserPost($this->testing_auth_id);
+
+        Post::where('ulid', $other_user_ost_ulid)->update(['is_draft' => 1, 'is_publish' => 0]);
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->getJson('post/drafts');
+
+        $response->assertOk()
+        ->assertJsonMissingExact(['is_deleted' => 1])
+        ->assertJsonMissingExact(['is_draft' => 0])
+        ->assertJsonFragment(['is_draft' => 1])
+        ->assertJsonMissing(['ulid' => $other_user_ost_ulid]);
+    }
+
+    /**
      * テスト用投稿データを作成
      *
      * @return void
