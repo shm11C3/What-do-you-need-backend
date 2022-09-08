@@ -55,6 +55,7 @@ class PostController extends Controller
                 'content' => $request['content'],
                 'is_draft' => $request['is_draft'],
                 'is_publish' => $request['is_publish'],
+                'is_edited' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -115,6 +116,7 @@ class PostController extends Controller
             'posts.updated_at',
             'post_categories.uuid',
             'post_categories.name',
+            'posts.is_edited',
             'users.name',
             'users.username',
             'users.country_id',
@@ -173,6 +175,7 @@ class PostController extends Controller
             'posts.updated_at',
             'post_categories.uuid',
             'post_categories.name',
+            'posts.is_edited',
             'users.name',
             'users.username',
             'users.country_id',
@@ -217,14 +220,16 @@ class PostController extends Controller
 
         $ulid = $request['ulid'];
 
-        // ulidを検証、権限がない場合は403
-        $post_owner = $this->post->getPostOwner($ulid);
+        // ulidを検証、権限がない場合は403;
+        $post_info = $this->post->getPostInfo($ulid);
 
-        if(!$post_owner){
+        if(!$post_info){
             return abort(404);
-        }elseif($post_owner !== $auth_id){
+        }elseif($post_info->auth_id !== $auth_id){
             return abort(403);
         }
+
+        $is_edited = $post_info->is_publish; // 更新前に投稿を公開していた場合`true`
 
         try{
             DB::table('posts')->where('ulid', $ulid)->update([
@@ -233,6 +238,7 @@ class PostController extends Controller
                 'content' => $request['content'],
                 'is_draft' => $request['is_draft'],
                 'is_publish' => $request['is_publish'],
+                'is_edited' => $is_edited,
                 'updated_at' => now()
             ]);
         }catch(\Exception $e){
@@ -256,11 +262,11 @@ class PostController extends Controller
         $ulid = $request['ulid'];
 
         // ulidを検証、権限がない場合は403
-        $post_owner = $this->post->getPostOwner($ulid);
+        $post_info = $this->post->getPostInfo($ulid);
 
-        if(!$post_owner){
+        if(!$post_info){
             return abort(404);
-        }elseif($post_owner !== $auth_id){
+        }elseif($post_info->auth_id !== $auth_id){
             return abort(403);
         }
 
@@ -300,6 +306,7 @@ class PostController extends Controller
             'posts.is_draft',
             'posts.is_publish',
             'posts.is_deleted',
+            'posts.is_edited',
             'posts.created_at',
             'posts.updated_at',
         ])

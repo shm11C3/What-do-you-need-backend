@@ -299,8 +299,11 @@ class PostTest extends TestCase
         $response->assertStatus(200)
         ->assertJsonFragment(["status" => true]);
 
-        $a= $this->getJson('/post/'.self::TESTING_POST_ULID) // 更新後
-        ->assertJsonFragment(["content" => 'Updated post']);
+        $this->getJson('/post/'.self::TESTING_POST_ULID) // 更新後
+        ->assertJsonFragment([
+            "content" => 'Updated post',
+            "is_edited" => 1,
+        ]);
 
         $this->regeneratePost();
 
