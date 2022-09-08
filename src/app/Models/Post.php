@@ -80,9 +80,9 @@ class Post extends Model
       * @param string $ulid
       * @return string|null
       */
-    public function getPostOwner(string $ulid): ?string
+    public function getPostInfo(string $ulid): ?object
     {
-        $post_owner = DB::table('posts')->where('ulid', $ulid)->where('is_deleted', 0)->get('posts.auth_id');
-        return $post_owner[0]->auth_id ?? null;
+        $post = DB::table('posts')->where('ulid', $ulid)->where('is_deleted', 0)->get(['posts.auth_id', 'posts.is_publish']);
+        return $post[0] ?? null;
     }
 }
