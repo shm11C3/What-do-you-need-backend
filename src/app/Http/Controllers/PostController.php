@@ -303,6 +303,7 @@ class PostController extends Controller
             'posts.created_at',
             'posts.updated_at',
         ])
+        ->orderBy('updated_at', 'desc')
         ->simplePaginate(30);
 
         return response()->json(["status" => true, $data]);
