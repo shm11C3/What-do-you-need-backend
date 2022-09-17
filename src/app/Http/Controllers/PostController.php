@@ -6,6 +6,7 @@ use App\Http\Requests\CreatePostRequest;
 use App\Http\Requests\DeletePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
+use App\Models\User;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
@@ -17,9 +18,10 @@ class PostController extends Controller
     /**
      * @param User $user
      */
-    public function __construct(Post $post)
+    public function __construct(Post $post, User $user)
     {
         $this->post = $post;
+        $this->user = $user;
     }
 
     /**
@@ -311,6 +313,62 @@ class PostController extends Controller
             'posts.updated_at',
         ])
         ->orderBy('updated_at', 'desc')
+        ->simplePaginate(30);
+
+        return response()->json(["status" => true, $data]);
+    }
+
+    /**
+     * Get posts created by the specified user
+     *
+     * @param string $username
+     * @param Request $request
+     * @return response
+     */
+    public function getUserPosts(Request $request, string $username)
+    {
+        if (!preg_match('/^[A-Za-z\d_]+$/', $username)) {
+            abort(400);
+        }
+        $auth_id = $request->subject;
+
+        $target_auth_id = $this->user->getAuthIdByUsername($username);
+
+        $posts = Post::where('posts.is_deleted', 0)
+        ->where('posts.is_draft', 0)
+        ->where('users.delete_flg', 0)
+        ->where('posts.auth_id', $target_auth_id);
+
+        if ($auth_id) {
+            $posts->where(function ($query) use ($auth_id) {
+                $query->where('is_publish', 1)
+                ->orWhere('is_publish', 0)->where('users.auth_id', $auth_id);
+            });
+        } else {
+            $posts->where('is_publish', 1);
+        }
+
+        $data = $posts->join('users', 'users.auth_id', 'posts.auth_id')
+        ->join('post_categories', 'post_categories.uuid', 'posts.category_uuid')
+        ->orderBy('posts.created_at' ,'desc')
+        ->select([
+            'posts.ulid',
+            'posts.category_uuid',
+            'posts.title',
+            'posts.content',
+            'posts.is_draft',
+            'posts.is_publish',
+            'posts.is_deleted',
+            'posts.created_at',
+            'posts.updated_at',
+            'post_categories.name',
+            'posts.is_edited',
+            'users.name',
+            'users.username',
+            'users.country_id',
+            'users.profile_img_uri',
+            'users.delete_flg as is_deleted_user',
+        ])
         ->simplePaginate(30);
 
         return response()->json(["status" => true, $data]);
