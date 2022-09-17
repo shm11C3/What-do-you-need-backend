@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use App\Models\Post;
 use App\Models\PostCategory;
 use Database\Seeders\CategorySeeder;
@@ -470,6 +471,66 @@ class PostTest extends TestCase
         ->assertJsonMissingExact(['is_draft' => 0])
         ->assertJsonFragment(['is_draft' => 1])
         ->assertJsonMissing(['ulid' => $other_user_ost_ulid]);
+    }
+
+    /**
+     * Test `/{username}/posts`
+     *
+     * @return void
+     */
+    public function test_getUserPosts(): void
+    {
+        $this->regeneratePost();
+
+        Post::create([
+            'ulid' => Ulid::generate(false),
+            'auth_id' => 'dummy',
+            'category_uuid' => self::TESTING_CATEGORY_UUID,
+            'title' => 'Cannot be get',
+            'content' => 'Cannot be get',
+            'is_draft' => 0,
+            'is_publish' => 1,
+            'is_edited' => 0,
+            'is_deleted' => 0,
+        ]);
+
+        User::create([
+            'auth_id' => 'dummy',
+            'name' => 'dummy',
+            'username' => 'dummy',
+            'country_id' => 1120,
+        ]);
+
+        // 非ログイン時
+        $response = $this->getJson('/'.self::TESTING_USERNAME.'/posts');
+
+        $response->assertStatus(200)
+        ->assertJsonMissingExact(['auth_id'])
+        ->assertJsonMissingExact(['is_deleted' => 1])
+        ->assertJsonMissingExact(['is_publish' => 0])
+        ->assertJsonMissingExact(['is_draft' => 1])
+        ->assertJsonMissingExact(['is_deleted_user' => 1])
+        ->assertJsonMissingExact(['username' => 'dummy'])
+        ->assertJsonFragment(['username' => self::TESTING_USERNAME]);
+
+        // ログイン時
+        $response = $this->getJson('/'.self::TESTING_USERNAME.'/posts', [
+            'Authorization' => 'Bearer '.$this->id_token
+        ]);
+        $response->assertStatus(200)
+        ->assertJsonFragment(['ulid' => self::TESTING_POST_ULID])
+        ->assertJsonMissingExact(['is_deleted' => 1])
+        ->assertJsonMissingExact(['is_deleted_user', 1])
+        ->assertJsonMissingExact(['is_draft' => 1]) // 下書きに設定されたものはログインユーザ自身のものであっても取得できない
+        ->assertJsonMissingExact(['username' => 'dummy']);
+
+        // 非公開のものも自分で作成したものは取得される
+        $this->toPrivate();
+
+        $response = $this->getJson('/'.self::TESTING_USERNAME.'/posts', [
+            'Authorization' => 'Bearer '.$this->id_token
+        ]);
+        $response->assertJsonFragment(['ulid' => self::TESTING_POST_ULID, 'is_publish' => 0]);
     }
 
     /**

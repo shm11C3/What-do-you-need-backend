@@ -34,6 +34,8 @@ Route::group(['middleware' => ['auth0:any']], function () {
     Route::get('/user/username/exists', [UserProfileController::class, 'duplicateUsername_exists']);
 
     Route::get('/categories', [CategoryController::class, 'getCategories']);
+
+    Route::get('/{username}/posts', [PostController::class, 'getUserPosts'])->name('getUserPost');
 });
 
 // ログインユーザ用エンドポイント

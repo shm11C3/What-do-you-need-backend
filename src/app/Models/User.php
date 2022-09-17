@@ -94,4 +94,15 @@ class User extends Authenticatable
 
         return $user_data;
     }
+
+    /**
+     * Get `auth_id` from `username`
+     *
+     * @param string $username
+     * @return string
+     */
+    public function getAuthIdByUsername(string $username): string
+    {
+        return DB::table('users')->where('username', $username)->get('auth_id')[0]->auth_id;
+    }
 }
