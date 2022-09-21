@@ -117,7 +117,7 @@ class PostController extends Controller
             'posts.created_at',
             'posts.updated_at',
             'post_categories.uuid',
-            'post_categories.name',
+            'post_categories.name as category_name',
             'posts.is_edited',
             'users.name',
             'users.username',
@@ -176,7 +176,7 @@ class PostController extends Controller
             'posts.created_at',
             'posts.updated_at',
             'post_categories.uuid',
-            'post_categories.name',
+            'post_categories.name as category_name',
             'posts.is_edited',
             'users.name',
             'users.username',
@@ -190,7 +190,7 @@ class PostController extends Controller
             return abort(404);
         }
 
-        return response()->json(["status" => true, $data]);
+        return response()->json(["status" => true, $data[0]]);
     }
 
     /**
@@ -254,6 +254,12 @@ class PostController extends Controller
         return response()->json(["status" => true, "ulid" => (string)$ulid]);
     }
 
+    /**
+     * Delete posts to which the user has access
+     *
+     * @param DeletePostRequest $request
+     * @return response
+     */
     public function deletePost(DeletePostRequest $request)
     {
         if(!$request->user){
@@ -366,7 +372,7 @@ class PostController extends Controller
             'posts.is_deleted',
             'posts.created_at',
             'posts.updated_at',
-            'post_categories.name',
+            'post_categories.name as category_name',
             'posts.is_edited',
             'users.name',
             'users.username',
