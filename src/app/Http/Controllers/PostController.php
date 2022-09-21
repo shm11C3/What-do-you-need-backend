@@ -334,6 +334,11 @@ class PostController extends Controller
 
         $target_auth_id = $this->user->getAuthIdByUsername($username);
 
+        if ($target_auth_id == null) {
+            // 存在しないユーザ名
+            abort(404);
+        }
+
         $posts = Post::where('posts.is_deleted', 0)
         ->where('posts.is_draft', 0)
         ->where('users.delete_flg', 0)
