@@ -267,4 +267,27 @@ class UserTest extends TestCase
             'result' => false,
         ]);
     }
+
+    /**
+     * Test `/user/get/{username}`
+     *
+     * @return void
+     */
+    public function test_getUserProfileByUsername()
+    {
+        $this->getJson('/user/get/'.self::TESTING_USERNAME)
+        ->assertStatus(200)
+        ->assertJsonMissingExact(['auth_id'])
+        ->assertJsonFragment(['username' => self::TESTING_USERNAME]);
+
+        $this->getJson('/user/get/'.self::TESTING_USERNAME, [
+            'Authorization' => 'Bearer '.$this->id_token
+        ])
+        ->assertStatus(200)
+        ->assertJsonMissingExact(['auth_id'])
+        ->assertJsonFragment(['username' => self::TESTING_USERNAME]);
+
+        $this->getJson('/user/get/dummy')
+        ->assertStatus(404);
+    }
 }

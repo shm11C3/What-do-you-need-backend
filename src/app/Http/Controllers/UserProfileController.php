@@ -94,6 +94,52 @@ class UserProfileController extends Controller
     }
 
     /**
+     * Return public user data from username
+     *
+     * @param Request $request
+     * @param string $username
+     * @return response
+     */
+    public function getUserProfileByUsername(Request $request, $username)
+    {
+        if (!preg_match('/^[A-Za-z\d_]+$/', $username)) {
+            abort(400);
+        }
+
+        $auth_username = $request->user[0]->username ?? null;
+
+        // ログイン中のユーザーの場合
+        if ($auth_username === $username) {
+            $user_data = (object)[
+                'name' => $request->user[0]->name,
+                'username' => $request->user[0]->username,
+                'country_id' => $request->user[0]->country_id,
+                'created_at' => $request->user[0]->created_at,
+            ];
+        } else {
+            $response = DB::table('users')->where('username', $username)->where('delete_flg', 0)
+            ->get([
+                'name',
+                'username',
+                'country_id',
+                'created_at',
+            ]);
+
+            if (!isset($response[0])) {
+                abort(404);
+            }
+
+            $user_data = $response[0];
+        }
+
+        // `country_id`をもとに国名と国コードを追加
+        $user_data->country_code = Country::COUNTRY_CODE_LIST[$user_data->country_id];
+        $user_data->country = Country::COUNTRY_LIST[$user_data->country_id];
+
+        return response()->json($user_data);
+    }
+
+    /**
      * 受け取ったユーザーデータでDBを更新する
      *
      * @param UpdateUserRequest $request
