@@ -524,6 +524,9 @@ class PostTest extends TestCase
         ->assertJsonMissingExact(['is_draft' => 1]) // 下書きに設定されたものはログインユーザ自身のものであっても取得できない
         ->assertJsonMissingExact(['username' => 'dummy']);
 
+        // 存在しないユーザー名
+        $this->getJson('/not_found/posts')->assertStatus(404);
+
         // 非公開のものも自分で作成したものは取得される
         $this->toPrivate();
 

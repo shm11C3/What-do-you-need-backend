@@ -101,8 +101,8 @@ class User extends Authenticatable
      * @param string $username
      * @return string
      */
-    public function getAuthIdByUsername(string $username): string
+    public function getAuthIdByUsername(string $username): ?string
     {
-        return DB::table('users')->where('username', $username)->get('auth_id')[0]->auth_id;
+        return DB::table('users')->where('username', $username)->get('auth_id')[0]->auth_id ?? null;
     }
 }
