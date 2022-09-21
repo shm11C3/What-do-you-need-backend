@@ -36,6 +36,8 @@ Route::group(['middleware' => ['auth0:any']], function () {
     Route::get('/categories', [CategoryController::class, 'getCategories']);
 
     Route::get('/{username}/posts', [PostController::class, 'getUserPosts'])->name('getUserPost');
+
+    Route::get('/user/get/{username}', [UserProfileController::class, 'getUserProfileByUsername'])->name('getUserProfile');
 });
 
 // ログインユーザ用エンドポイント
