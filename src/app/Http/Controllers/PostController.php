@@ -26,7 +26,7 @@ class PostController extends Controller
 
     /**
      * 投稿をDBに登録
-     * `POST: post/create`
+     * `POST: post`
      *
      * @todo `isValid_publish()`を追加する
      * @param CreatePostRequest $request
@@ -194,7 +194,7 @@ class PostController extends Controller
 
     /**
      * `ulid`に一致する投稿を更新
-     * `PUT: /posts/update`
+     * `PUT: /post`
      *
      * @param UpdatePostRequest $request
      * @return void
