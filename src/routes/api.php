@@ -28,36 +28,40 @@ Route::group(['middleware' => ['auth0:any']], function () {
     // PostController
     Route::get('/posts', [PostController::class, 'getPosts'])->name('getPosts');
     Route::get('/posts/{category}', [PostController::class, 'getPosts'])->name('getPosts')->whereUuid('category');
+    // TODO カテゴリ、ユーザー名などの条件はクエリで指定
 
     Route::get('/post/{ulid}', [PostController::class, 'getPost'])->name('getPost')->where('ulid', '[0-9a-hjkmnp-zA-HJKMNP-Z]{26}');
+    Route::get('/post', function () {
+        abort(404);
+    });
 
-    Route::get('/user/username/exists', [UserProfileController::class, 'duplicateUsername_exists']);
+    Route::get('/username/exists', [UserProfileController::class, 'duplicateUsername_exists']);
 
     Route::get('/categories', [CategoryController::class, 'getCategories']);
 
-    Route::get('/{username}/posts', [PostController::class, 'getUserPosts'])->name('getUserPost');
+    Route::get('/posts/{username}', [PostController::class, 'getUserPosts'])->name('getUserPost');
 
-    Route::get('/user/get/{username}', [UserProfileController::class, 'getUserProfileByUsername'])->name('getUserProfile');
+    Route::get('/user/{username}', [UserProfileController::class, 'getUserProfileByUsername'])->name('getUserProfile');
 });
 
 // ログインユーザ用エンドポイント
 Route::group(['middleware' => ['auth0:auth']], function () {
 
     // UserProfileController
-    Route::get('/user/profile', [UserProfileController::class, 'getUserProfile'])->name('getUserProfile');
+    Route::get('/my-profile', [UserProfileController::class, 'getUserProfile'])->name('getUserProfile');
 
-    Route::post('/user/create', [UserProfileController::class, 'storeUserProfile'])->name('storeUserProfile');
+    Route::post('/user', [UserProfileController::class, 'storeUserProfile'])->name('storeUserProfile');
 
-    Route::put('/user/update', [UserProfileController::class, 'updateUserProfile'])->name('updateUserProfile');
+    Route::put('/user', [UserProfileController::class, 'updateUserProfile'])->name('updateUserProfile');
 
-    Route::delete('/user/delete', [UserProfileController::class, 'deleteUserProfile'])->name('deleteUserProfile');
+    Route::delete('/user', [UserProfileController::class, 'deleteUserProfile'])->name('deleteUserProfile');
 
     // PostController
-    Route::post('/post/create', [PostController::class, 'createPost']);
+    Route::post('/post', [PostController::class, 'createPost']);
 
-    Route::put('/post/update', [PostController::class, 'updatePost'])->name('updatePost');
+    Route::put('/post', [PostController::class, 'updatePost'])->name('updatePost');
 
-    Route::delete('/post/delete', [PostController::class, 'deletePost'])->name('deletePost');
+    Route::delete('/post', [PostController::class, 'deletePost'])->name('deletePost');
 
     Route::get('/post/drafts', [PostController::class, 'getDrafts'])->name('getDrafts');
 

@@ -24,16 +24,16 @@ class UserTest extends TestCase
     }
 
     /**
-     * Test `/user/profile`
+     * Test `/my-profile`
      *
      * @return void
      */
     public function test_getUserProfile(): void
     {
-        $response = $this->getJson('/user/profile');
+        $response = $this->getJson('/my-profile');
         $response->assertStatus(401)->assertJson(ErrorMessage::MESSAGES['token_does_not_exist']);
 
-        $response = $this->getJson('/user/profile', [
+        $response = $this->getJson('/my-profile', [
             'Authorization' => 'Bearer '.$this->id_token
         ]);
 
@@ -48,7 +48,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * Test `/user/create`
+     * Test `POST:/user`
      *
      * @return void
      */
@@ -59,7 +59,7 @@ class UserTest extends TestCase
         // 正常系
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('user/create', [
+        ])->postJson('user', [
             'name' => self::TESTING_NAME,
             'username' => self::TESTING_USERNAME,
             'country_id' => self::TESTING_COUNTRY_ID,
@@ -70,7 +70,7 @@ class UserTest extends TestCase
         ]);
 
         // ユーザーが正常に作成されているか確認
-        $this->getJson('/user/profile', [
+        $this->getJson('/my-profile', [
             'Authorization' => 'Bearer '.$this->id_token
         ])->assertStatus(200)->assertJson([
             'auth_id' => $this->testing_auth_id,
@@ -83,7 +83,7 @@ class UserTest extends TestCase
         // 重複した auth_id の登録はできない
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('user/create', [
+        ])->postJson('user', [
             'name' => self::TESTING_NAME,
             'username' => self::TESTING_USERNAME.'_2', // usernameの重複によるinvalidを防ぐ
             'country_id' => self::TESTING_COUNTRY_ID,
@@ -94,7 +94,7 @@ class UserTest extends TestCase
         // usernameのバリデーションを確認
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('user/create', [
+        ])->postJson('user', [
             'name' => self::TESTING_NAME,
             'username' => '1234567890123456',
             'country_id' => self::TESTING_COUNTRY_ID,
@@ -109,7 +109,7 @@ class UserTest extends TestCase
         // 17文字以上は登録できない
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('user/create', [
+        ])->postJson('user', [
             'name' => self::TESTING_NAME,
             'username' => '12345678901234567',
             'country_id' => self::TESTING_COUNTRY_ID,
@@ -120,7 +120,7 @@ class UserTest extends TestCase
         // 記号は`_` `-`以外は使用できない
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('user/create', [
+        ])->postJson('user', [
             'name' => self::TESTING_NAME,
             'username' => self::TESTING_USERNAME.'@',
             'country_id' => self::TESTING_COUNTRY_ID,
@@ -131,7 +131,7 @@ class UserTest extends TestCase
         // 英字以外の文字は入力できない
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('user/create', [
+        ])->postJson('user', [
             'name' => self::TESTING_NAME,
             'username' => 'あいうえお',
             'country_id' => self::TESTING_COUNTRY_ID,
@@ -142,7 +142,7 @@ class UserTest extends TestCase
         // 数字は登録できる
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('user/create', [
+        ])->postJson('user', [
             'name' => self::TESTING_NAME,
             'username' => '000',
             'country_id' => self::TESTING_COUNTRY_ID,
@@ -154,7 +154,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * Test `/user/update`
+     * Test `PUT:/user`
      *
      * @return void
      */
@@ -165,7 +165,7 @@ class UserTest extends TestCase
         // 正常系
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->putJson('user/update', [
+        ])->putJson('user', [
             'name' => self::TESTING_NAME.$additional_text,
             'username' => self::TESTING_USERNAME.$additional_text,
             'country_id' => self::TESTING_COUNTRY_ID+10,
@@ -178,7 +178,7 @@ class UserTest extends TestCase
         // `username`に変更がなくてもリクエストは処理される
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->putJson('user/update', [
+        ])->putJson('user', [
             'name' => self::TESTING_NAME,
             'username' => self::TESTING_USERNAME,
             'country_id' => self::TESTING_COUNTRY_ID,
@@ -191,7 +191,7 @@ class UserTest extends TestCase
         // 各値が足りない状態でリクエストしても処理される
         $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->putJson('user/update', [
+        ])->putJson('user', [
             'name' => self::TESTING_NAME,
             'country_id' => self::TESTING_COUNTRY_ID,
         ])->assertStatus(200)->assertJson([
@@ -201,13 +201,13 @@ class UserTest extends TestCase
         // すべての値が空でもリクエストは処理される
         $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->putJson('user/update')->assertStatus(200)->assertJson([
+        ])->putJson('user')->assertStatus(200)->assertJson([
             "status" => true
         ]);
     }
 
     /**
-     * Test `/user/delete`
+     * Test `DELETE:/user`
      *
      * @return void
      */
@@ -216,13 +216,13 @@ class UserTest extends TestCase
         // 正常系
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->deleteJson('user/delete');
+        ])->deleteJson('user');
 
         $response->assertStatus(200)->assertJson([
             "status" => true
         ]);
 
-        $this->getJson('/user/profile', [
+        $this->getJson('/my-profile', [
             'Authorization' => 'Bearer '.$this->id_token
         ])->assertStatus(200)->assertJson([
             'status' => false,
@@ -234,7 +234,7 @@ class UserTest extends TestCase
         $this->createAuth0User();
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('user/create', [
+        ])->postJson('user', [
             'name' => self::TESTING_NAME,
             'username' => self::TESTING_USERNAME,
             'country_id' => self::TESTING_COUNTRY_ID,
@@ -246,48 +246,48 @@ class UserTest extends TestCase
     }
 
     /**
-     * Test `/user/username/exists`
+     * Test `GET:/username/exists`
      *
      * @return void
      */
     public function test_duplicateUsername_exists()
     {
-        $this->getJson('/user/username/exists')
+        $this->getJson('/username/exists')
         ->assertStatus(400);
 
-        $this->getJson('/user/username/exists?username='.self::TESTING_USERNAME)
+        $this->getJson('/username/exists?username='.self::TESTING_USERNAME)
         ->assertStatus(200)->assertJson([
             'result' => true,
         ]);
 
         $this->deleteTestUser();
 
-        $this->getJson('/user/username/exists?username='.self::TESTING_USERNAME)
+        $this->getJson('/username/exists?username='.self::TESTING_USERNAME)
         ->assertStatus(200)->assertJson([
             'result' => false,
         ]);
     }
 
     /**
-     * Test `/user/get/{username}`
+     * Test `GET:/user/{username}`
      *
      * @return void
      */
     public function test_getUserProfileByUsername()
     {
-        $this->getJson('/user/get/'.self::TESTING_USERNAME)
+        $this->getJson('/user/'.self::TESTING_USERNAME)
         ->assertStatus(200)
         ->assertJsonMissingExact(['auth_id'])
         ->assertJsonFragment(['username' => self::TESTING_USERNAME]);
 
-        $this->getJson('/user/get/'.self::TESTING_USERNAME, [
+        $this->getJson('/user/'.self::TESTING_USERNAME, [
             'Authorization' => 'Bearer '.$this->id_token
         ])
         ->assertStatus(200)
         ->assertJsonMissingExact(['auth_id'])
         ->assertJsonFragment(['username' => self::TESTING_USERNAME]);
 
-        $this->getJson('/user/get/dummy')
+        $this->getJson('/user/dummy')
         ->assertStatus(404);
     }
 }

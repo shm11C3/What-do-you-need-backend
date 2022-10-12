@@ -42,7 +42,7 @@ class PostTest extends TestCase
     }
 
     /**
-     * Test `/post/create`
+     * Test `POST:/post`
      *
      * @return void
      */
@@ -59,7 +59,7 @@ class PostTest extends TestCase
         // 正常系
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('post/create', $post_data);
+        ])->postJson('post', $post_data);
 
         $response->assertStatus(200)->assertJsonFragment(["status" => true])->assertSee('ulid');
 
@@ -67,7 +67,7 @@ class PostTest extends TestCase
         $post_data['category_uuid'] = 1;
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('post/create', $post_data);
+        ])->postJson('post', $post_data);
 
         $response->assertStatus(422);
         $post_data = $this->testing_post;
@@ -75,13 +75,13 @@ class PostTest extends TestCase
         $post_data['title'] = $this->generateRandStr(46);
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('post/create', $post_data);
+        ])->postJson('post', $post_data);
         $response->assertStatus(422);
 
         $post_data['content'] = $this->generateRandStr(4097);
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('post/create', $post_data);
+        ])->postJson('post', $post_data);
         $response->assertStatus(422);
 
         $post_data = $this->testing_post;
@@ -90,7 +90,7 @@ class PostTest extends TestCase
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('post/create', $post_data);
+        ])->postJson('post', $post_data);
         $response->assertStatus(422);
 
         $post_data = $this->testing_post;
@@ -100,7 +100,7 @@ class PostTest extends TestCase
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->postJson('post/create', $post_data);
+        ])->postJson('post', $post_data);
 
         $response->assertStatus(401);
 
@@ -108,7 +108,7 @@ class PostTest extends TestCase
     }
 
     /**
-     * Test `/posts`
+     * Test `GET:/posts`
      *
      * @return void
      */
@@ -163,7 +163,7 @@ class PostTest extends TestCase
     }
 
     /**
-     * Test `/post/{ulid}`
+     * Test `GET:/post/{ulid}`
      *
      * @return void
      */
@@ -271,7 +271,7 @@ class PostTest extends TestCase
     }
 
     /**
-     * Test `/post/update`
+     * Test `PUT:/post`
      *
      * @return void
      */
@@ -358,8 +358,8 @@ class PostTest extends TestCase
         // ログインぜずにアクセス
         $response = $this->withHeaders([
             'Authorization' => null
-        ])->putJson('post/update', $post_data);
-        $response = $this->putJson('post/update', $post_data);
+        ])->putJson('post', $post_data);
+        $response = $this->putJson('post', $post_data);
         $response->assertStatus(401);
 
         $this->getJson('/post/'.self::TESTING_POST_ULID) // 更新されない
@@ -383,7 +383,7 @@ class PostTest extends TestCase
     }
 
     /**
-     * 'post/update'に$post_dataをPUTする
+     * 'PUT:/post'に$post_dataを挿入する
      *
      * @param array $post_data
      * @return object
@@ -392,9 +392,14 @@ class PostTest extends TestCase
     {
         return $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->putJson('post/update', $post_data);
+        ])->putJson('post', $post_data);
     }
 
+    /**
+     * Test `DELETE:/post`
+     *
+     * @return void
+     */
     public function test_deletePost()
     {
         $this->regeneratePost();
@@ -403,7 +408,7 @@ class PostTest extends TestCase
         $ulid = self::TESTING_POST_ULID;
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->deleteJson('post/delete', ['ulid' => $ulid]);
+        ])->deleteJson('post', ['ulid' => $ulid]);
 
         $response->assertStatus(200)->assertJsonFragment(["status" => true])->assertSee('ulid');
 
@@ -416,7 +421,7 @@ class PostTest extends TestCase
         ->assertStatus(404);
 
         $this->withHeaders(['Authorization' => 'Bearer '.$this->id_token])
-        ->deleteJson('post/delete', ['ulid' => $ulid])
+        ->deleteJson('post', ['ulid' => $ulid])
         ->assertStatus(404);
 
         $this->regeneratePost();
@@ -426,7 +431,7 @@ class PostTest extends TestCase
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->deleteJson('post/delete', ['ulid' => $ulid]);
+        ])->deleteJson('post', ['ulid' => $ulid]);
 
         $response->assertStatus(404);
 
@@ -435,20 +440,20 @@ class PostTest extends TestCase
         // 他人の投稿は削除できない
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->deleteJson('post/delete', ['ulid' => $this->getOtherUserPost($this->testing_auth_id)]);
+        ])->deleteJson('post', ['ulid' => $this->getOtherUserPost($this->testing_auth_id)]);
 
         $response->assertStatus(403);
 
         // 存在しない投稿は削除できない
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
-        ])->deleteJson('post/delete', ['ulid' => (string)Ulid::generate()]);
+        ])->deleteJson('post', ['ulid' => (string)Ulid::generate()]);
 
         $response->assertStatus(404);
     }
 
     /**
-     * Test `/post/drafts`
+     * Test `GET:/post/drafts`
      *
      * @return void
      */
@@ -474,7 +479,7 @@ class PostTest extends TestCase
     }
 
     /**
-     * Test `/{username}/posts`
+     * Test `GET:/posts/{username}`
      *
      * @return void
      */
@@ -502,7 +507,7 @@ class PostTest extends TestCase
         ]);
 
         // 非ログイン時
-        $response = $this->getJson('/'.self::TESTING_USERNAME.'/posts');
+        $response = $this->getJson('/posts/'.self::TESTING_USERNAME);
 
         $response->assertStatus(200)
         ->assertJsonMissingExact(['auth_id'])
@@ -514,7 +519,7 @@ class PostTest extends TestCase
         ->assertJsonFragment(['username' => self::TESTING_USERNAME]);
 
         // ログイン時
-        $response = $this->getJson('/'.self::TESTING_USERNAME.'/posts', [
+        $response = $this->getJson('/posts/'.self::TESTING_USERNAME, [
             'Authorization' => 'Bearer '.$this->id_token
         ]);
         $response->assertStatus(200)
@@ -530,7 +535,7 @@ class PostTest extends TestCase
         // 非公開のものも自分で作成したものは取得される
         $this->toPrivate();
 
-        $response = $this->getJson('/'.self::TESTING_USERNAME.'/posts', [
+        $response = $this->getJson('/posts/'.self::TESTING_USERNAME, [
             'Authorization' => 'Bearer '.$this->id_token
         ]);
         $response->assertJsonFragment(['ulid' => self::TESTING_POST_ULID, 'is_publish' => 0]);
