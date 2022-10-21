@@ -1,4 +1,4 @@
-FROM nginx:1.20 AS base
+FROM nginx:1.23 AS base
 
 WORKDIR /var/www/html
 
