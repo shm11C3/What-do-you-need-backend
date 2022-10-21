@@ -66,7 +66,8 @@ class CheckIdToken
             'clientSecret' => config('auth0.clientSecret'),
             'tokenJwksUri' => 'https://'.config('auth0.domain').'/.well-known/jwks.json',
             'tokenCache' => null,
-            'tokenCacheTtl' => 43200
+            'tokenCacheTtl' => 43200,
+            'cookieSecret' => config('auth0.cookieSecret'),
         ]);
 
         // SDKの設定でキャッシュを有効化させる

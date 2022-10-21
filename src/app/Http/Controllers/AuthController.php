@@ -46,6 +46,7 @@ class AuthController extends Controller
             'domain' => config('auth0.domain'),
             'clientId' => config('auth0.managementId'),
             'clientSecret' => config('auth0.managementSecret'),
+            'cookieSecret' => config('auth0.cookieSecret'),
           ]);
 
         $auth0 = new Auth0($configuration);

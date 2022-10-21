@@ -8,4 +8,5 @@ return [
     'managementSecret' => env('AUTH0_MANAGEMENT_SECRET'),
     'testUsername' => env('AUTH0_TEST_USERNAME'),
     'testUserPass' => env('AUTH0_TEST_USER_PASS'),
+    'cookieSecret' => env('AUTH0_COOKIE_SECRET'),
 ];
