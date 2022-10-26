@@ -6,7 +6,9 @@ name: Deploy to Amazon ECS
 on:
   push:
     branches: [ "master" ]
-
+  # マージ時に削除
+  pull_request:
+    branches: [ "master" ]
 env:
   AWS_REGION: ap-northeast-1
   ECR_REPOSITORY_PHP: what-do-you-need-php
@@ -51,8 +53,8 @@ jobs:
       run: |
         touch .env.production
         echo "ENV_PROD=${{ secrets.ENV_PROD }}" >> .env.production
-        docker build --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG -f ../infra/docker/php/Dockerfile .
-        docker build --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_NGINX:$IMAGE_TAG -f ../infra/docker/nginx/Dockerfile .
+        docker build --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG -f ./infra/docker/php/Dockerfile .
+        docker build --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_NGINX:$IMAGE_TAG -f ./infra/docker/nginx/Dockerfile .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_NGINX:$IMAGE_TAG
         echo "::set-output name=image-php::$ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG"
