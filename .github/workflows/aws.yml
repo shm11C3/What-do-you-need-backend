@@ -1,0 +1,95 @@
+# This workflow will build and push a new container image to Amazon ECR,
+# and then will deploy a new task definition to Amazon ECS, when there is a push to the "master" branch.
+
+name: Deploy to Amazon ECS
+
+on:
+  push:
+    branches: [ "master" ]
+
+env:
+  AWS_REGION: ap-northeast-1
+  ECR_REPOSITORY_PHP: whatDoYouNeed-php
+  ECR_REPOSITORY_NGINX: whatDoYouNeed-nginx
+  ECS_SERVICE: prod-whatDoYouNeed
+  ECS_CLUSTER: prod-WhatDoYouNeed
+  ECS_TASK_DEFINITION_NAME: prod-WhatDoYouNeed
+  ECS_TASK_DEFINITION: .aws/task-definition.json
+  CONTAINER_NAME_PHP: php-fpm
+  CONTAINER_NAME_PHP_MIGRATER: php-migrater
+  CONTAINER_NAME_NGINX: nginx
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        touch .env.production
+        echo "ENV_PROD=${{ secrets.ENV_PROD }}" >> .env.production
+        docker build --target deploy -t $ECR_REGISTRY/whatDoYouNeed-php:$IMAGE_TAG -f ../infra/docker/php/Dockerfile .
+        docker build --target deploy -t $ECR_REGISTRY/whatDoYouNeed-nginx:$IMAGE_TAG -f ../infra/docker/nginx/Dockerfile .
+        docker push $ECR_REGISTRY/whatDoYouNeed-php:$IMAGE_TAG
+        docker push $ECR_REGISTRY/whatDoYouNeed-nginx:$IMAGE_TAG
+        echo "::set-output name=image-php::$ECR_REGISTRY/whatDoYouNeed-php:$IMAGE_TAG"
+        echo "::set-output name=image-nginx::$ECR_REGISTRY/whatDoYouNeed-nginx:$IMAGE_TAG"
+
+    - name: Download task definition
+      run: |
+        aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION_NAME }} --query taskDefinition > .aws/task-definition.json
+
+    - name: Fill in the new php image ID in the Amazon ECS task definition
+      id: task-def-php
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ env.ECS_TASK_DEFINITION }}
+        container-name: ${{ env.CONTAINER_NAME_PHP }}
+        image: ${{ steps.build-image.outputs.image-php }}
+
+    - name: Fill in the new php image ID in the Amazon ECS task definition
+      id: task-def-php-migrater
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def-php.outputs.task-definition }}
+        container-name: ${{ env.CONTAINER_NAME_PHP_MIGRATER }}
+        image: ${{ steps.build-image.outputs.image-php }}
+
+    - name: Fill in the new nginx image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def-php-migrater.outputs.task-definition }}
+        container-name: ${{ env.CONTAINER_NAME_NGINX }}
+        image: ${{ steps.build-image.outputs.image-nginx }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true

@@ -1,0 +1,17 @@
+{
+    "cSpell.words": [
+      "awslogs",
+      "Consts",
+      "EHBDDDWBP",
+      "MIGRATER",
+      "PASA"
+    ],
+    "workbench.colorCustomizations": {
+    "[Default Dark+]": {}
+    },
+    "workbench.colorCustomizations": {
+      "titleBar.activeBackground": "#737f74", // タイトルバーの背景色
+      "titleBar.activeForeground": "#fff", // タイトルバーの文字色
+      "editor.background": "#261e00", // エディタの背景色
+    }
+}
