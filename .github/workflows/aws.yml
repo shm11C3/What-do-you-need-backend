@@ -49,6 +49,8 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
+        touch .env.production
+        echo "ENV_PROD=${{ secrets.ENV_PROD }}" >> .env.production
         docker build --target deploy -t $ECR_REGISTRY/whatDoYouNeed-php:$IMAGE_TAG -f ../infra/docker/php/Dockerfile .
         docker build --target deploy -t $ECR_REGISTRY/whatDoYouNeed-nginx:$IMAGE_TAG -f ../infra/docker/nginx/Dockerfile .
         docker push $ECR_REGISTRY/whatDoYouNeed-php:$IMAGE_TAG
