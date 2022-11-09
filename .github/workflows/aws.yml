@@ -50,7 +50,7 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         touch .env.production
-        echo "ENV_PROD=${{ secrets.ENV_PROD }}" >> .env.production
+        echo "ENV_PROD=${{ secrets.ENV_PROD }}" >> src/.env.production
         docker build --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG -f ./infra/docker/php/Dockerfile .
         docker build --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_NGINX:$IMAGE_TAG -f ./infra/docker/nginx/Dockerfile .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG
