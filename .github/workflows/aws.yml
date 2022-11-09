@@ -11,7 +11,7 @@ env:
   AWS_REGION: ap-northeast-1
   ECR_REPOSITORY_PHP: what-do-you-need-php
   ECR_REPOSITORY_NGINX: what-do-you-need-nginx
-  ECS_SERVICE: prod-whatDoYouNeed
+  ECS_SERVICE: prod-wt-you-need
   ECS_CLUSTER: prod-WhatDoYouNeed
   ECS_TASK_DEFINITION_NAME: prod-WhatDoYouNeed
   ECS_TASK_DEFINITION: .aws/task-definition.json
