@@ -47,8 +47,7 @@ COPY ./src /var/www/html
 
 RUN composer install -q -n --no-ansi --no-dev --no-scripts --no-progress --prefer-dist \
   && composer dump-autoload \
-  && php artisan config:clear \
-  && php artisan config:cache \
   && chmod -R 777 storage bootstrap/cache \
   && php artisan optimize:clear \
-  && php artisan optimize
+  && php artisan optimize \
+  && php artisan config:clear
