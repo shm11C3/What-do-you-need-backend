@@ -58,6 +58,12 @@ return [
             'permission' => 0644,
         ],
 
+        'docker' => [
+            'driver' => 'stack',
+            'channels' => ['stderr', 'stdout', 'slack'],
+            'ignore_exceptions' => false,
+        ],
+
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
@@ -100,6 +106,7 @@ return [
             'with' => [
                 'stream' => 'php://stderr',
             ],
+            'level' => 'debug'
         ],
 
         'syslog' => [
