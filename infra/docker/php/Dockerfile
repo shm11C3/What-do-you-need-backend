@@ -51,6 +51,4 @@ RUN composer install -q -n --no-ansi --no-dev --no-scripts --no-progress --prefe
   && php artisan optimize:clear \
   && php artisan optimize \
   && php artisan config:clear \
-  && php artisan config:cache \
-  && php artisan route:clear \
-  && php artisan route:cache
+  && php artisan route:clear
