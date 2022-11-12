@@ -50,4 +50,7 @@ RUN composer install -q -n --no-ansi --no-dev --no-scripts --no-progress --prefe
   && chmod -R 777 storage bootstrap/cache \
   && php artisan optimize:clear \
   && php artisan optimize \
-  && php artisan config:clear
+  && php artisan config:clear \
+  && php artisan config:cache \
+  && php artisan route:clear \
+  && php artisan route:cache
