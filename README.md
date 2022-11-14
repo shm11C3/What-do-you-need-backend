@@ -4,7 +4,7 @@
 
 ## System Overview
 
-![strn-backend](https://user-images.githubusercontent.com/78523393/201185744-ed35a1de-7240-4d5b-ad38-39a5122bc716.jpg)
+![strn-backend drawio](https://user-images.githubusercontent.com/78523393/201750103-80d4a8d9-f495-4972-91f1-f53599ca8a51.png)
 
 ## Technology used
 
