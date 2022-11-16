@@ -57,10 +57,8 @@ jobs:
       run: |
         touch .env.production
         echo "ENV_PROD=${{ secrets.ENV_PROD }}" >> src/.env.production
-        docker buildx build --platform linux/arm64 --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG -f ./infra/docker/php/Dockerfile .
-        docker buildx build --platform linux/arm64 --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_NGINX:$IMAGE_TAG -f ./infra/docker/nginx/Dockerfile .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_NGINX:$IMAGE_TAG
+        docker buildx build --platform linux/arm64 --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG -f ./infra/docker/php/Dockerfile --push .
+        docker buildx build --platform linux/arm64 --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_NGINX:$IMAGE_TAG -f ./infra/docker/nginx/Dockerfile --push .
         echo "::set-output name=image-php::$ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG"
         echo "::set-output name=image-nginx::$ECR_REGISTRY/$ECR_REPOSITORY_NGINX:$IMAGE_TAG"
 
