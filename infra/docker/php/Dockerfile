@@ -25,6 +25,7 @@ RUN apt-get update \
     libmemcached-dev \
   && apt-get clean \
   && pecl install memcached \
+  && echo extension=memcached.so >> /usr/local/etc/php/conf.d/memcached.ini \
   && rm -rf /var/lib/apt/lists/* \
   && locale-gen en_US.UTF-8 \
   && localedef -f UTF-8 -i en_US en_US.UTF-8 \
