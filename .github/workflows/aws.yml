@@ -38,6 +38,14 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
+    - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -49,17 +57,32 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push image to Amazon ECR
+    - name: Set env file
+      run: |
+        touch .env.production
+        echo "ENV_PROD=${{ secrets.ENV_PROD }}" >> src/.env.production
+
+    - name: Build, tag, and push php image to Amazon ECR
+      uses: docker/build-push-action@v2
+      id: build-image-php
+      with:
+        push: true
+        tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PHP }}:${{ github.sha }}
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+    - name: Move cache
+      run: |
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+    - name: Build, tag, and push nginx image to Amazon ECR
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        touch .env.production
-        echo "ENV_PROD=${{ secrets.ENV_PROD }}" >> src/.env.production
-        docker buildx build --platform linux/arm64 --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG -f ./infra/docker/php/Dockerfile --push .
         docker buildx build --platform linux/arm64 --target deploy -t $ECR_REGISTRY/$ECR_REPOSITORY_NGINX:$IMAGE_TAG -f ./infra/docker/nginx/Dockerfile --push .
-        echo "::set-output name=image-php::$ECR_REGISTRY/$ECR_REPOSITORY_PHP:$IMAGE_TAG"
         echo "::set-output name=image-nginx::$ECR_REGISTRY/$ECR_REPOSITORY_NGINX:$IMAGE_TAG"
 
     - name: Download task definition
@@ -72,7 +95,7 @@ jobs:
       with:
         task-definition: ${{ env.ECS_TASK_DEFINITION }}
         container-name: ${{ env.CONTAINER_NAME_PHP }}
-        image: ${{ steps.build-image.outputs.image-php }}
+        image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PHP }}:${{ github.sha }}
 
     - name: Fill in the new php image ID in the Amazon ECS task definition
       id: task-def-php-migrater
@@ -80,7 +103,7 @@ jobs:
       with:
         task-definition: ${{ steps.task-def-php.outputs.task-definition }}
         container-name: ${{ env.CONTAINER_NAME_PHP_MIGRATER }}
-        image: ${{ steps.build-image.outputs.image-php }}
+        image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PHP }}:${{ github.sha }}
 
     - name: Fill in the new nginx image ID in the Amazon ECS task definition
       id: task-def
