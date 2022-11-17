@@ -64,6 +64,7 @@ jobs:
         cache-to: type=gha,mode=max
 
     - name: Build, tag, and push nginx image to Amazon ECR
+      uses: docker/build-push-action@v2
       id: build-image-nginx
       with:
        push: true
