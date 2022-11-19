@@ -21,6 +21,23 @@ class Auth extends Model
   }
 
   /**
+   * auth0のユーザデータを取得
+   *
+   * @param string $auth_id
+   * @return void
+   */
+  public function fetchAuth0Account(string $auth_id)
+  {
+    $response = $this->auth0->management()->users()->get($auth_id);
+
+    if ($response->getStatusCode() >= 400){
+      abort(500);
+    }
+
+    return $response->getBody()->getContents();
+  }
+
+  /**
    * Auth0のユーザーを更新する
    *
    * @param string $auth_id

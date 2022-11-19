@@ -71,4 +71,6 @@ Route::group(['middleware' => ['auth0:auth']], function () {
     Route::post('auth/resend-verification-email', [AuthController::class, 'resendVerificationEmail']);
 
     Route::post('/auth/config-mfa', [AuthController::class, 'configMfa']);
+
+    Route::get('auth/user', [AuthController::class, 'fetchAuth0Account']);
 });
