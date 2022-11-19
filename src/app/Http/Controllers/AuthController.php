@@ -106,4 +106,21 @@ class AuthController extends Controller
             'result' => $use_mfa
         ]);
     }
+
+    /**
+     * auth0のユーザデータを取得
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function fetchAuth0Account(Request $request)
+    {
+        return response()->json(
+            json_decode(json_decode(
+                response()->json(
+                    $this->auth->fetchAuth0Account($request->subject)
+                )->content()
+            ))
+        );
+    }
 }
