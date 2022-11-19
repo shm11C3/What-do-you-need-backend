@@ -69,4 +69,6 @@ Route::group(['middleware' => ['auth0:auth']], function () {
     Route::post('/auth/change-password', [AuthController::class, 'requestResetPasswordMail']);
 
     Route::post('auth/resend-verification-email', [AuthController::class, 'resendVerificationEmail']);
+
+    Route::post('/auth/config-mfa', [AuthController::class, 'configMfa']);
 });
