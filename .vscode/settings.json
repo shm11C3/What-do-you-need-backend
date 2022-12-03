@@ -4,7 +4,8 @@
       "Consts",
       "EHBDDDWBP",
       "MIGRATER",
-      "PASA"
+      "PASA",
+      "reactable",
     ],
     "workbench.colorCustomizations": {
     "[Default Dark+]": {}
