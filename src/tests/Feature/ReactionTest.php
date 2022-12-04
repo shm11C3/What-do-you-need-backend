@@ -28,6 +28,20 @@ class ReactionTest extends TestCase
         'reaction_type' => 'good',
     ];
 
+    /**
+     * ユーザーの作成したリアクションULID
+     *
+     * @var ?string
+     */
+    private $reaction_valid_ulid;
+
+    /**
+     * 存在しないリアクションULID
+     *
+     * @var ?string
+     */
+    private $reaction_invalid_ulid;
+
     public function setup(): void
     {
         parent::setUp();
@@ -36,10 +50,22 @@ class ReactionTest extends TestCase
         $this->createTestUser();
 
         $this->valid_reaction['reactable_ulid']
-        = $invalid_type_reaction['reactable_ulid']
-        = (string) Post::limit(1)->get('ulid')[0]->ulid;
+            = $invalid_type_reaction['reactable_ulid']
+            = (string) Post::limit(1)->get('ulid')[0]->ulid;
 
-        $this->invalid_ulid_reaction['reactable_ulid'] = (string) Str::ulid();
+        $this->invalid_ulid_reaction['reactable_ulid']
+            = $this->reaction_invalid_ulid
+            = (string) Str::ulid();
+
+        // ダミーのリアクションを作成
+        $this->reaction_valid_ulid = (string) Str::ulid();;
+        Reaction::create([
+            'ulid' => $this->reaction_valid_ulid,
+            'auth_id' => $this->testing_auth_id,
+            'reactable_ulid' => $this->valid_reaction['reactable_ulid'],
+            'reaction_type' => 'hot',
+            'reactable_type' => 'App\\Models\\Post',
+        ]);
     }
 
     /**
@@ -63,7 +89,7 @@ class ReactionTest extends TestCase
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
         ])->postJson('post/reaction', $this->valid_reaction);
-        $response->assertOk()->assertJsonFragment(["status" => true, 'reaction_type' => $this->valid_reaction['reaction_type']]);
+        $response->assertOk()->assertJsonFragment(["status" => true])->assertJsonFragment(['reaction_type' => $this->valid_reaction['reaction_type']]);
 
         // DBに登録されているか確認
         $this->assertDatabaseHas('reactions', [
@@ -104,5 +130,63 @@ class ReactionTest extends TestCase
             'Authorization' => 'Bearer '.$this->id_token
         ])->postJson('post/reaction', $this->invalid_ulid_reaction);
         $response->assertStatus(400);
+    }
+
+    /**
+     * @test
+     *
+     * @return void
+     */
+    public function test_removeReaction(): void
+    {
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('reaction', ['ulid' => $this->reaction_valid_ulid]);
+
+        $response->assertOk()
+        ->assertJsonFragment(["status" => true, "ulid" => $this->reaction_valid_ulid]);
+    }
+
+    /**
+     * @test
+     *
+     * @return void
+     */
+    public function test_removeReaction_exception(): void
+    {
+        $missing_reaction = ['ulid' => $this->reaction_invalid_ulid];
+        $valid_reaction = ['ulid' => $this->reaction_valid_ulid];
+        $others_reaction = ['ulid' => Reaction::whereNot('auth_id', $this->testing_auth_id)->first()->ulid];
+
+        // 認証トークンなし
+        $response = $this->deleteJson('reaction', $valid_reaction);
+        $response->assertUnauthorized();
+
+        // 削除権限なし（他人のリアクション）
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('reaction', $others_reaction);
+        $response->assertStatus(403);
+
+        // 存在しないリアクション
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('reaction', $missing_reaction);
+        $response->assertStatus(403)
+        ->assertJsonFragment(["status" => false, "ulid" => $this->reaction_invalid_ulid]);
+
+        // バリデーション
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('reaction', ['ulid' => (string)Str::uuid()]);
+        $response->assertStatus(422);
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('reaction', ['ulid' => null]);
+            $response->assertStatus(422);
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->id_token
+        ])->deleteJson('reaction', ['ulid' => (object)Str::uuid()]);
+        $response->assertStatus(422);
     }
 }

@@ -80,5 +80,5 @@ Route::group(['middleware' => ['auth0:auth']], function () {
     // ReactionController
     Route::post('/{reactableType}/reaction', [ReactionController::class, 'addReaction'])->name('addReaction')->where('reactableType', 'post|comment');
 
-    // Route::delete('/reaction', [ReactionController::class, 'removeReaction'])->name('removeReaction');
+    Route::delete('/reaction', [ReactionController::class, 'removeReaction'])->name('removeReaction');
 });
