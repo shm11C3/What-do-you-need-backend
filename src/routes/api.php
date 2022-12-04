@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\ReactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserProfileController;
@@ -42,6 +43,8 @@ Route::group(['middleware' => ['auth0:any']], function () {
     Route::get('/posts/{username}', [PostController::class, 'getUserPosts'])->name('getUserPost');
 
     Route::get('/user/{username}', [UserProfileController::class, 'getUserProfileByUsername'])->name('getUserProfile');
+
+    Route::get('/reaction-types', [ReactionController::class, 'getReactionTypes'])->name('getReactionTypes');
 });
 
 // ログインユーザ用エンドポイント
@@ -73,4 +76,9 @@ Route::group(['middleware' => ['auth0:auth']], function () {
     Route::post('/auth/config-mfa', [AuthController::class, 'configMfa']);
 
     Route::get('auth/user', [AuthController::class, 'fetchAuth0Account']);
+
+    // ReactionController
+    Route::post('/{reactableType}/reaction', [ReactionController::class, 'addReaction'])->name('addReaction')->where('reactableType', 'post|comment');
+
+    Route::delete('/reaction', [ReactionController::class, 'removeReaction'])->name('removeReaction');
 });

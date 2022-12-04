@@ -84,7 +84,8 @@ class PostController extends Controller
     {
         $auth_id = $request->subject;
 
-        $posts = Post::where('posts.is_deleted', 0)
+        $posts = Post::with('reactions')
+        ->where('posts.is_deleted', 0)
         ->where('posts.is_draft', 0)
         ->where('users.delete_flg', 0);
 
@@ -146,7 +147,7 @@ class PostController extends Controller
 
         $auth_id = $request->subject;
 
-        $post = DB::table('posts')
+        $post = Post::with('reactions')
         ->where('ulid', $ulid)
         ->where('is_deleted', 0)
         ->where('delete_flg', 0);
@@ -344,7 +345,8 @@ class PostController extends Controller
             abort(404);
         }
 
-        $posts = Post::where('posts.is_deleted', 0)
+        $posts = Post::with('reactions')
+        ->where('posts.is_deleted', 0)
         ->where('posts.is_draft', 0)
         ->where('users.delete_flg', 0)
         ->where('posts.auth_id', $target_auth_id);

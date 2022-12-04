@@ -5,10 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\Reaction;
 class Post extends Model
 {
     use HasFactory;
+
+    protected $primaryKey = 'ulid';
+
+    protected $keyType = 'string';
+
+    /**
+     * モデルのIDを自動増分するか
+     *
+     * @var bool
+     */
+    public $incrementing = false;
 
     /**
      * The attributes that are mass assignable.
@@ -44,6 +55,11 @@ class Post extends Model
         return $this->belongsTo(User::class, 'auth_id', 'auth_id');
     }
 
+    public function reactions()
+    {
+        return $this->morphMany(Reaction::class, 'reactable', 'reactable_type', 'reactable_ulid');
+    }
+
     /**
      * `is_draft`と`is_publish`を検証
      *
@@ -74,7 +90,7 @@ class Post extends Model
         return (!$is_publish || ($content && $title && $category_uuid));
     }
 
-     /**
+    /**
       * `ulid`の投稿の投稿者`auth_id`取得する
       *
       * @param string $ulid
