@@ -63,7 +63,7 @@ class ReactionTest extends TestCase
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$this->id_token
         ])->postJson('post/reaction', $this->valid_reaction);
-        $response->assertOk()->assertJsonFragment(["status" => true, 'reaction_type' => $this->valid_reaction['reaction_type']]);
+        $response->assertOk()->assertJsonFragment(["status" => true])->assertJsonFragment(['reaction_type' => $this->valid_reaction['reaction_type']]);
 
         // DBに登録されているか確認
         $this->assertDatabaseHas('reactions', [

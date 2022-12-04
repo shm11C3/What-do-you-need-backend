@@ -81,7 +81,7 @@ class Reaction extends Model
      * @param string $reaction_type
      * @return boolean
      */
-    public function isUniqueReactions(
+    public function isExistReactions(
         string $reactable_ulid,
         string $auth_id,
         string $reaction_type,

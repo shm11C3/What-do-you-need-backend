@@ -42,7 +42,7 @@ class ReactionController extends Controller
         }
 
         // リアクションの重複チェック
-        if (!$this->reaction->isUniqueReactions(
+        if (!$this->reaction->isExistReactions(
             $request['reactable_ulid'], $auth_id, $request['reaction_type']
         )) {
             return abort(400);
@@ -67,6 +67,6 @@ class ReactionController extends Controller
         }
         $reactable->reactions()->save($reaction);
 
-        return response()->json(["status" => true, 'reaction_type' => $request['reaction_type']]);
+        return response()->json(["status" => true, 'reaction' => $reaction]);
     }
 }
