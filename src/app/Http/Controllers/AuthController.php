@@ -2,14 +2,40 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ConfigMfaRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Auth;
 use Illuminate\Support\Facades\Http;
 use Auth0\SDK\Auth0;
 use Auth0\SDK\Configuration\SdkConfiguration;
+use Illuminate\Http\Response;
 
 class AuthController extends Controller
 {
+    /**
+     * Auth0で設定したMFAのプロバイダー
+     *
+     * @var string 'duo|google-authenticator'
+     */
+    const MFA_PROVIDER = 'google-authenticator';
+
+    /**
+     * @param Auth $auth
+     */
+    public function __construct(Auth $auth)
+    {
+        $this->auth = $auth;
+        $configuration = new SdkConfiguration([
+            'domain' => config('auth0.domain'),
+            'clientId' => config('auth0.managementId'),
+            'clientSecret' => config('auth0.managementSecret'),
+            'cookieSecret' => config('auth0.cookieSecret'),
+          ]);
+
+        $this->auth0 = new Auth0($configuration);
+    }
+
     /**
      * パスワード変更リクエストを送信
      *
@@ -42,21 +68,59 @@ class AuthController extends Controller
      */
     public function resendVerificationEmail(Request $request)
     {
-        $configuration = new SdkConfiguration([
-            'domain' => config('auth0.domain'),
-            'clientId' => config('auth0.managementId'),
-            'clientSecret' => config('auth0.managementSecret'),
-            'cookieSecret' => config('auth0.cookieSecret'),
-          ]);
-
-        $auth0 = new Auth0($configuration);
-
-        $response = $auth0->management()->jobs()->createSendVerificationEmail($request->subject);
+        $response = $this->auth0->management()->jobs()->createSendVerificationEmail($request->subject);
 
         if ($response->getStatusCode() >= 400){
           abort(500);
         }
 
         return response()->json(['status' => true]);
+    }
+
+    /**
+     * MFAの有効・無効を設定
+     *
+     * @param ConfigMfaRequest $request
+     * @return Response ['result' => $use_mfa]
+     */
+    public function configMfa(ConfigMfaRequest $request)
+    {
+        $auth_id = $request->subject;
+        $use_mfa = $request['mfa'];
+
+        $this->auth->updateAuth0Account($auth_id, ['user_metadata' =>
+            ['use_mfa' => $use_mfa]
+        ]);
+
+        // MFAを無効にする場合MFAプロバイダを削除する
+        if (!$use_mfa) {
+            $response = $this->auth0->management()->users()->deleteMultifactorProvider($auth_id, self::MFA_PROVIDER);
+
+            if ($response->getStatusCode() >= 400){
+                abort(500);
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'result' => $use_mfa
+        ]);
+    }
+
+    /**
+     * auth0のユーザデータを取得
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function fetchAuth0Account(Request $request)
+    {
+        return response()->json(
+            json_decode(json_decode(
+                response()->json(
+                    $this->auth->fetchAuth0Account($request->subject)
+                )->content()
+            ))
+        );
     }
 }

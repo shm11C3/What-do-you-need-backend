@@ -23,6 +23,9 @@ RUN apt-get update \
     libicu-dev \
     libonig-dev \
   && apt-get clean \
+  && pecl install apcu \
+  && docker-php-ext-enable apcu \
+  && pecl clear-cache \
   && rm -rf /var/lib/apt/lists/* \
   && locale-gen en_US.UTF-8 \
   && localedef -f UTF-8 -i en_US en_US.UTF-8 \
