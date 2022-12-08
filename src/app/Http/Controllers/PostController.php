@@ -84,7 +84,8 @@ class PostController extends Controller
     {
         $auth_id = $request->subject;
 
-        $posts = Post::where('posts.is_deleted', 0)
+        $posts = Post::with('reactions')
+        ->where('posts.is_deleted', 0)
         ->where('posts.is_draft', 0)
         ->where('users.delete_flg', 0);
 
@@ -126,6 +127,10 @@ class PostController extends Controller
         ])
         ->simplePaginate(30);
 
+        foreach($data as $i => $post) {
+            $data[$i] = $this->post->addReactionElements($post, $auth_id);
+        }
+
         return response()->json(["status" => true, $data]);
     }
 
@@ -146,7 +151,7 @@ class PostController extends Controller
 
         $auth_id = $request->subject;
 
-        $post = DB::table('posts')
+        $post = Post::with('reactions')
         ->where('ulid', $ulid)
         ->where('is_deleted', 0)
         ->where('delete_flg', 0);
@@ -189,7 +194,9 @@ class PostController extends Controller
             return abort(404);
         }
 
-        return response()->json(["status" => true, $data[0]]);
+        $data = $this->post->addReactionElements($data[0], $auth_id);
+
+        return response()->json(["status" => true, $data]);
     }
 
     /**
@@ -344,7 +351,8 @@ class PostController extends Controller
             abort(404);
         }
 
-        $posts = Post::where('posts.is_deleted', 0)
+        $posts = Post::with('reactions')
+        ->where('posts.is_deleted', 0)
         ->where('posts.is_draft', 0)
         ->where('users.delete_flg', 0)
         ->where('posts.auth_id', $target_auth_id);
@@ -379,6 +387,10 @@ class PostController extends Controller
             'users.delete_flg as is_deleted_user',
         ])
         ->simplePaginate(30);
+
+        foreach($data as $i => $post) {
+            $data[$i] = $this->post->addReactionElements($post, $auth_id);
+        }
 
         return response()->json(["status" => true, $data]);
     }
