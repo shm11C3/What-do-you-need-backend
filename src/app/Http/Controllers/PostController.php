@@ -127,6 +127,10 @@ class PostController extends Controller
         ])
         ->simplePaginate(30);
 
+        foreach($data as $i => $post) {
+            $data[$i] = $this->post->addReactionElements($post, $auth_id);
+        }
+
         return response()->json(["status" => true, $data]);
     }
 
@@ -190,7 +194,9 @@ class PostController extends Controller
             return abort(404);
         }
 
-        return response()->json(["status" => true, $data[0]]);
+        $data = $this->post->addReactionElements($data[0], $auth_id);
+
+        return response()->json(["status" => true, $data]);
     }
 
     /**
@@ -381,6 +387,10 @@ class PostController extends Controller
             'users.delete_flg as is_deleted_user',
         ])
         ->simplePaginate(30);
+
+        foreach($data as $i => $post) {
+            $data[$i] = $this->post->addReactionElements($post, $auth_id);
+        }
 
         return response()->json(["status" => true, $data]);
     }

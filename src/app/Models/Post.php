@@ -101,4 +101,42 @@ class Post extends Model
         $post = DB::table('posts')->where('ulid', $ulid)->where('is_deleted', 0)->get(['posts.auth_id', 'posts.is_publish']);
         return $post[0] ?? null;
     }
+
+    /**
+     * Postデータに加工したリアクション要素を追加
+     *
+     * @param object $data
+     * @param string $auth_id
+     * @return object
+     */
+    public function addReactionElements(object $data, ?string $auth_id): object
+    {
+        $usersReactions = [];
+        $countByReactionType = [];
+
+        foreach(array_keys(Reaction::TYPES) as $i => $reaction_type) {
+            $countByReactionType[$reaction_type] = 0;
+        }
+
+        if ($auth_id) {
+            foreach($data->reactions as $i => $reaction) {
+                $countByReactionType[$reaction->reaction_type]++;
+
+                // ユーザー毎のリアクションを取得
+                if ($reaction->auth_id === $auth_id) {
+                    $usersReactions[$i] = $reaction->reaction_type;
+                }
+            }
+        } else {
+            foreach($data->reactions as $i => $reaction) {
+                $countByReactionType[$reaction->reaction_type]++;
+            }
+        }
+
+        $data->totalReactionCount = count($data->reactions);
+        $data->countByReactionType = $countByReactionType;
+        $data->usersReactions = $usersReactions;
+
+        return $data;
+    }
 }
