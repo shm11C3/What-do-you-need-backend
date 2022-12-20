@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\ReactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -81,4 +82,6 @@ Route::group(['middleware' => ['auth0:auth']], function () {
     Route::post('/{reactableType}/reaction', [ReactionController::class, 'addReaction'])->name('addReaction')->where('reactableType', 'post|comment');
 
     Route::delete('/reaction', [ReactionController::class, 'removeReaction'])->name('removeReaction');
+
+    Route::post('/post/image', [PostImageController::class, 'storeImage'])->name('storeImage');
 });
