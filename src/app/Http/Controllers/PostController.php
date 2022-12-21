@@ -6,6 +6,7 @@ use App\Http\Requests\CreatePostRequest;
 use App\Http\Requests\DeletePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
+use App\Models\PostImage;
 use App\Models\User;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Illuminate\Http\Client\Response;
@@ -47,8 +48,11 @@ class PostController extends Controller
         }
 
         $ulid = Ulid::generate();
+        $image_group_uuid = $request['image_group_uuid'];
 
         try{
+            DB::beginTransaction();
+
             DB::table('posts')->insert([
                 'ulid' => $ulid,
                 'auth_id' => $auth_id,
@@ -61,7 +65,16 @@ class PostController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-        }catch (\Exception $e) {
+
+            if ($image_group_uuid) {
+                $postImage = new PostImage;
+                $postImage->attachPostImageToPosts($auth_id, $image_group_uuid, $ulid);
+            }
+
+            DB::commit();
+        }catch (\Throwable $e) {
+            DB::rollBack();
+
             return response()->json([
                 "status" => false,
                 "message" => config('app.debug') ? $e->getMessage() : '500 : '.HttpResponse::$statusTexts[500],
@@ -238,8 +251,11 @@ class PostController extends Controller
         }
 
         $is_edited = $post_info->is_publish; // 更新前に投稿を公開していた場合`true`
+        $image_group_uuid = $request['image_group_uuid'];
 
         try{
+            DB::beginTransaction();
+
             DB::table('posts')->where('ulid', $ulid)->update([
                 'category_uuid' => $request['category_uuid'],
                 'title' => $request['title'],
@@ -249,7 +265,16 @@ class PostController extends Controller
                 'is_edited' => $is_edited,
                 'updated_at' => now()
             ]);
+
+            if ($image_group_uuid) {
+                $postImage = new PostImage;
+                $postImage->attachPostImageToPosts($auth_id, $image_group_uuid, $ulid);
+            }
+
+            DB::commit();
         }catch(\Exception $e){
+            DB::rollBack();
+
             return response()->json([
                 "status" => false,
                 "message" => config('app.debug') ? $e->getMessage() : '500 : '.HttpResponse::$statusTexts[500],

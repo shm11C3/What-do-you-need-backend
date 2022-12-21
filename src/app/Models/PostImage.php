@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class PostImage extends Model
@@ -71,5 +72,26 @@ class PostImage extends Model
         }
 
         return $uploaded_path;
+    }
+
+    /**
+     * post_imageを投稿に紐づける
+     * 受け取った引数からpost_ulidを更新
+     *
+     * @param string $auth_id
+     * @param string $image_group_uuid
+     * @param string $post_ulid
+     * @return void
+     */
+    public function attachPostImageToPosts(
+        string $auth_id,
+        string $image_group_uuid,
+        string $post_ulid,
+    ): void {
+        DB::table('post_images')
+        ->where('auth_id', $auth_id)
+        ->where('image_group_uuid', $image_group_uuid)
+        ->where('post_ulid', null)
+        ->update(['post_ulid' => $post_ulid]);
     }
 }
