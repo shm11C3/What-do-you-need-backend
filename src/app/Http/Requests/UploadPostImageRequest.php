@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\UlidRule;
 
-class CreatePostRequest extends FormRequest
+class UploadPostImageRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,11 +24,7 @@ class CreatePostRequest extends FormRequest
     public function rules()
     {
         return [
-            'category_uuid' => 'nullable|exists:post_categories,uuid',
-            'title' => 'nullable|string|max:45',
-            'content' => 'nullable|string|max:4096',
-            'is_draft' => 'required|boolean',
-            'is_publish' => 'required|boolean',
+            'image' => 'required|image|max:1024|dimensions:max_width=1920,max_height=1080',
             'image_group_uuid' => 'string|uuid',
         ];
     }
