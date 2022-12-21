@@ -75,6 +75,21 @@ class PostImage extends Model
     }
 
     /**
+     * S3の画像ファイルを削除
+     *
+     * @param array $targets
+     * @return void
+     */
+    public function deleteImageFromS3(array $targets): void
+    {
+        $result = Storage::disk('s3')->delete($targets);
+
+        if (!$result) {
+            throw new Exception('S3 Delete Error.');
+        }
+    }
+
+    /**
      * post_imageを投稿に紐づける
      * 受け取った引数からpost_ulidを更新
      *

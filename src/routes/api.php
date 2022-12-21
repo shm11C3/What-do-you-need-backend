@@ -83,5 +83,8 @@ Route::group(['middleware' => ['auth0:auth']], function () {
 
     Route::delete('/reaction', [ReactionController::class, 'removeReaction'])->name('removeReaction');
 
+    // PostImageController
     Route::post('/post/image', [PostImageController::class, 'storeImage'])->name('storeImage');
+
+    Route::delete('/post/image', [PostImageController::class, 'deleteImage'])->name('deleteImage');
 });

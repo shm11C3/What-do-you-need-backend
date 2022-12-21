@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeletePostImageRequest;
 use App\Http\Requests\UploadPostImageRequest;
 use App\Models\PostImage;
 use Illuminate\Support\Facades\DB;
@@ -80,8 +81,45 @@ class PostImageController extends Controller
         ]);
     }
 
-    public function deleteImage()
+    /**
+     * imageの削除処理
+     *
+     * @param DeletePostImageRequest $request
+     * @return Illuminate\Http\JsonResponse
+     */
+    public function deleteImage(DeletePostImageRequest $request): \Illuminate\Http\JsonResponse
     {
+        $auth_id = $request->subject;
 
+        // 条件に合うレコードのuuidを取得
+        $target_uuid = DB::table('post_images')
+        ->where('auth_id', $auth_id)
+        ->where('uuid', $request['uuid'])
+        ->get('uuid')[0]->uuid
+        ?? null;
+
+        if ($target_uuid === null) {
+            abort(403);
+        }
+
+        try{
+            DB::beginTransaction();
+
+            // DBから削除
+            DB::table('post_images')
+            ->where('uuid', $target_uuid)
+            ->delete();
+
+            // ファイルを削除
+            $this->postImage->deleteImageFromS3([$this->postImage->getImagePath($target_uuid)]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            Log::error($e);
+            DB::rollBack();
+            abort(500);
+        }
+
+        return response()->json(['status' => true]);
     }
 }
