@@ -31,6 +31,7 @@ class UpdatePostRequest extends FormRequest
             'content' => 'nullable|string|max:4096',
             'is_draft' => 'required|boolean',
             'is_publish' => 'required|boolean',
+            'image_group_uuid' => 'string|uuid',
         ];
     }
 }

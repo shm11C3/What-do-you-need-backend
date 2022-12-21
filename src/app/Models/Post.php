@@ -61,6 +61,16 @@ class Post extends Model
     }
 
     /**
+     * 関連するimagesを取得
+     *
+     * @return Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function images(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PostImage::class, 'post_ulid', 'ulid');
+    }
+
+    /**
      * `is_draft`と`is_publish`を検証
      *
      * @param boolean $is_draft
