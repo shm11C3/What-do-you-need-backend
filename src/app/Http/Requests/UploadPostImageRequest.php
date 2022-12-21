@@ -26,7 +26,6 @@ class UploadPostImageRequest extends ApiRequest
         return [
             'image' => 'required|image|max:1024|dimensions:max_width=1920,max_height=1080',
             'image_group_uuid' => 'string|uuid',
-            'post_ulid' => ['string', new UlidRule],
         ];
     }
 }

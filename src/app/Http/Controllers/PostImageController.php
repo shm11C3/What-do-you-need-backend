@@ -34,15 +34,11 @@ class PostImageController extends Controller
             // 各値を設定
             $image_group_uuid = (string) Str::uuid();
             $image_number = 1;
-            $post_ulid = null; // nullの値で宣言することで整合性を確保
         } else {
-            $post_ulid = $request['post_ulid'];
-
             // image_group_idが存在する場合(2枚目以降の写真)
             $max_image_number = DB::table('post_images')
             ->where('image_group_uuid', $image_group_uuid)
             ->where('auth_id', $auth_id)
-            ->where('post_ulid', $post_ulid) // postsに関連づいていない場合nullが代入されるため条件分岐する必要なし
             ->max('image_number');
 
             $image_number = $max_image_number + 1;
@@ -63,7 +59,6 @@ class PostImageController extends Controller
             DB::table('post_images')->insert([
                 'uuid' => $uuid,
                 'image_group_uuid' => $image_group_uuid,
-                'post_ulid' => $post_ulid,
                 'auth_id' => $auth_id,
                 'image_number' => $image_number,
             ]);
