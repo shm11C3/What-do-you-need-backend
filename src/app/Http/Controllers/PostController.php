@@ -98,6 +98,7 @@ class PostController extends Controller
         $auth_id = $request->subject;
 
         $posts = Post::with('reactions')
+        ->with('images')
         ->where('posts.is_deleted', 0)
         ->where('posts.is_draft', 0)
         ->where('users.delete_flg', 0);
@@ -165,6 +166,7 @@ class PostController extends Controller
         $auth_id = $request->subject;
 
         $post = Post::with('reactions')
+        ->with('images')
         ->where('ulid', $ulid)
         ->where('is_deleted', 0)
         ->where('delete_flg', 0);
@@ -335,6 +337,7 @@ class PostController extends Controller
         $auth_id = $request->subject;
 
         $data = Post::where('posts.is_deleted', 0)
+        ->with('images')
         ->where('is_draft', 1)
         ->where('auth_id', $auth_id)
         ->select([
@@ -377,6 +380,7 @@ class PostController extends Controller
         }
 
         $posts = Post::with('reactions')
+        ->with('images')
         ->where('posts.is_deleted', 0)
         ->where('posts.is_draft', 0)
         ->where('users.delete_flg', 0)
